@@ -4,7 +4,7 @@
 
 **Status (2026-11-21):**
 - Phases 1–3 are done: the problem in `01`, verified research in `01b`, the final architecture v1.0 in `02`.
-- Phase 4 (foundation) is in progress: the UE project, the plugin skeleton and the build scripts, checked through the UE job queue.
+- Phase 4 (foundation) is done: the UE project, the plugin skeleton and the build scripts. Both targets build with 0 errors and 0 warnings, and the packaged Development build runs on the RTX GPU (all through the UE job queue, `09`).
 - No gameplay code exists yet, and no results exist yet.
 
 ---

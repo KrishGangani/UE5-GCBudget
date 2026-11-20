@@ -96,5 +96,5 @@ Useful interactively (`stat gc`); not used for headline numbers because the CSV 
 | **UObject count** | `GUObjectArray.GetObjectArrayNumMinusAvailable()` as our own CSV stat each frame; cross-checked once with the 5.8 trace counter (`-trace=default,counters`) | The CSV `ObjectCount` category is compiled out (B1.1) |
 | **Resident MB** | CSV `PhysicalUsedMB`; delta against an N = 0 run | Engine-provided, every frame |
 | **Engine cross-checks in every CSV** | `GC/Count`, CSV event `GC`, `Exclusive/GameThread/GarbageCollection` | Free, and they make our own numbers auditable |
-| **Cadence** | `gc.TimeBetweenPurgingPendingKillObjects` set by the director; fixed step | Deterministic frame count between cycles (A1) |
+| **Cadence** | Fixed step; the director requests a cycle every 120 frames (`ForceGarbageCollection(false)`, with the engine timer parked). *Phase 3 refinement:* first planned as the timer cvar set to 2 s; changed because the timer field is private and U1 must know the frame before each cycle (`../02_System_Architecture.md` §6) | Deterministic frame count between cycles (A1) |
 | **Development build fairness** | `-NoVerifyGC` on every run | Verification is on by default in Development and hits clusters hardest (A8; D2) |

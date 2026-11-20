@@ -1,0 +1,25 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "GC Budget Core",
+	"Description": "Garbage-collection telemetry (per-frame GC time, per-cycle pause, UObject count) and generational handles for hot gameplay data kept in struct arrays instead of one UObject per item.",
+	"Category": "Performance",
+	"CreatedBy": "",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "GCBudgetCore",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

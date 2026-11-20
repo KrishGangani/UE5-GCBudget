@@ -188,7 +188,7 @@ NewItem(lane) = parameters from Hash(Seed, lane, laneGeneration)   // order-inde
 |---|---|---|
 | GC cadence | 120 frames (2.0 s at a 60 Hz fixed step) | About 30 cycles per 60 s capture: stable p95 and max (`01` §6.1). The default 61.1 s gives one cycle a minute |
 | Engine GC timer | 3600 s | Parks the timer; the director triggers cycles (§6) |
-| Items per page (U0/U1/U2) | 1,024 | Well above `gc.MinGCClusterSize` (5, `BaseEngine.ini:1753`), so every page forms a cluster. 98 pages at 100k: one expiry dirties 0.1% of the store's clusters, not all of it |
+| Items per page (U0/U1/U2) | 1,024 | Well above `gc.MinGCClusterSize` (5, `BaseEngine.ini:1753`), so every page forms a cluster; 98 pages at 100k. One expiry dirties one page (about 1% of the clusters), not the whole store as a single cluster would. **Honest caveat:** at 1% churn per second each page sees about 20 expiries per 2 s cycle, so U1 rebuilds nearly every cluster before every cycle. That maintenance cost is exactly what U1 is there to show (H4). A page-size sweep is a Phase 8 option |
 | U2 time limit | 2 ms | Epic's 5.8 docs example. The 5.8.4 default is 5 ms (`GarbageCollection.cpp:310`), a third of a 60 fps frame |
 | Lifetimes | uniform [50, 150] s | Mean 100 s gives 1% churn per second: real garbage every cycle, and N stays constant |
 | Probe | 1,000 lookups per frame from a pool of 4,096 references | Enough lookups for a stable ns figure, small next to the update loop. Some references expire, so stale-handle detection is exercised every frame |
@@ -250,6 +250,7 @@ All values are set with `IConsoleVariable::Set(…, ECVF_SetByCode)`, logged, an
 6. **Handle generations wrap** after 2³¹ releases of one slot. A stale handle could then match. In a 60 s run at 1% churn a slot is released about once, so this is far outside the test, but the limit is real for long sessions.
 7. **Struct items give up per-item UObject features** (`01` §8).
 8. **Single world.** In PIE with several worlds, only the world whose tick runs the GC sees it in its bracket. Packaged runs have one game world.
+9. **No bracket while paused.** `OnWorldPostActorTick` fires only when actors tick: not when the world is paused or ticks time only (`Engine/Private/LevelTick.cpp:1650–1656, 1898–1907`). The telemetry then publishes no bracket for that frame (it never invents one). Benchmark runs never pause.
 
 ## 13. Changes from the README plan
 

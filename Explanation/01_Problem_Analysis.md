@@ -86,7 +86,7 @@ The item model is deliberately minimal. It is a **workload**, not an inventory s
 - **UObject items are invalidated on expiry** with `MarkAsGarbage()`, as actors are on destroy. Weak references then fail at once, matching handle semantics.
 - **Random access probe:** each frame, 1,000 lookups through stable references (`TWeakObjectPtr` for UObject stores, `FGCBudgetHandle` for struct stores), drawn from a seeded pool of references in which some items have expired. Each lookup is checked against the simulation's ground truth.
 - **Sizes:** N ∈ {0, 1,000, 10,000, 30,000, 100,000}. The headline sizes are **10,000** and **100,000**.
-- **GC cadence:** `gc.TimeBetweenPurgingPendingKillObjects = 2.0` s, set from code. With a fixed 60 Hz step a cycle starts every 121 frames, about 30 cycles per 60 s capture. *Why 2 s and not the default 61.1 s:* 30 cycles per run give stable percentiles; the default would give one cycle per minute. The per-cycle pause depends on how much garbage a cycle finds, so the churn rate is fixed alongside it. The trade-off is stated in §8.
+- **GC cadence:** a cycle every **120 frames** (2.0 s at the fixed 60 Hz step), about 30 cycles per 60 s capture. The benchmark director parks the engine's own timer and requests each cycle with `ForceGarbageCollection(false)`, which starts it through the engine's normal path (design in `02` §6, evidence `01b` #1). *Why 2 s and not the default 61.1 s:* 30 cycles per run give stable percentiles; the default would give one cycle per minute. The per-cycle pause depends on how much garbage a cycle finds, so the churn rate is fixed alongside it. The trade-off is stated in §8.
 - **Camera:** fixed and static. Nothing renders per item; the scene is the engine's `Template_Default` map.
 
 ### 6.2 Compared configurations (all in the same build, chosen on the command line)
@@ -141,7 +141,7 @@ All values are medians across runs, with the [min–max] range across runs, unle
 - **GC settings for fairness:** `-NoVerifyGC` on every timed run (`01b` #11). Development's built-in GC pointer checks ("roughly 20%" per Epic's comment) can't be removed from a launcher engine. They apply to every configuration equally and are stated as a limit (`01b` #12).
 - **Determinism:** fixed step `-deterministic -FPS=60`; fixed seed; `r.VSync 0`; windowed 1280×720 on the real GPU; `-nosound`; `-traceautostart=0`; `GameUserSettings.ini` reset before runs.
   - The capture is opened and closed by the game itself: `CSV_EVENT` BenchStart after a 10 s warm-up (which includes at least four GC cycles after the items are created), and BenchEnd after 60 s.
-- **CPU:** every timed run is **pinned to the performance cores** (mask `0xFFFF` on this i7-14650HX; `Tools\cpu_affinity.py`). The runner launches the real exe directly, pins it, waits with a timeout, kills the tree in `finally`, and records the mask per run.
+- **CPU:** every timed run is **pinned to the performance cores** (mask `0xFFFF` on this i7-14650HX; `Tools\cpu_affinity.py`). The runner pins itself before it records the environment or launches anything, so every game inherits the mask from its first instruction. It launches the real exe directly, waits with a timeout, kills the tree in `finally`, and records the mask read back from Windows.
 - **Run order:**
   - one discarded priming run per batch;
   - then interleaved runs with the config order rotated each round. **Runs per combination = the number of configs in the batch**, so every config sits in every order position once.
