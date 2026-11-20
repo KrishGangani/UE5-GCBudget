@@ -5,7 +5,7 @@
 | Part | Step | Files |
 |---|---|---|
 | A | Phase 4, F1–F3 (foundation) | `.uproject`, two `Target.cs`, two `Build.cs`, two module `.cpp`, `.uplugin`, three config `.ini`, `Tools\*.bat`, `Tools\cpu_affinity.py` |
-| B onward | Phase 5, S1 onward | Written with the code |
+| B | Phase 5, S1 (telemetry + director, E0 only) | `GCBudgetTelemetrySubsystem.h/.cpp` (plugin), `GCBBenchmarkSubsystem.h/.cpp` (game) |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -196,6 +196,95 @@ Copied from the portfolio's reference project (UE5-UpdateBudget, `Tools/run_benc
 
 ---
 
-## Part B onward · Phase 5
+## Part B · Step S1: telemetry and the director (no items yet)
 
-*(Written with the code, step by step: S1 telemetry and director first. See `03`.)*
+### B1. `GCBudgetTelemetrySubsystem.h` (plugin, public)
+
+| Line(s) | What it does, and why |
+|---|---|
+| `#include "Engine/EngineBaseTypes.h"` | Declares `ELevelTick` (`Runtime/Engine/Classes/Engine/EngineBaseTypes.h:69`), the type of the world delegates' second parameter |
+| `#include "Subsystems/WorldSubsystem.h"` | The base class `UWorldSubsystem` |
+| `#include "GCBudgetTelemetrySubsystem.generated.h"` | UnrealHeaderTool's generated code for this header. It must be the **last** include |
+| `#define UE_API GCBUDGETCORE_API` … `#undef UE_API` | 5.8's export convention (the reference project and Epic's 5.8 plugins use it). `GCBUDGETCORE_API` is `dllexport` while compiling this module and `dllimport` in modules that include the header. `#undef` at the end keeps the short name from leaking into other headers |
+| `struct FGCBudgetFrameStats` | One frame's results as **plain data**: no UObject, no reflection, because it is only passed to C++ listeners and copied once per frame |
+| `double BracketMs = -1.0` | The bracketed time, in ms. `double`, because `FPlatformTime::Seconds()` is double and a sub-millisecond value must not lose precision. **−1 means "not measured"**: the bracket opens only when actors tick (02 §12, limit 9), and a missing value must never look like 0 ms |
+| `bool bGCFrame` | Whether this frame can contain GC work. The offline floor is computed from frames where this is false (01b §4) |
+| `int32 CycleStarts` | `PreGarbageCollect` broadcasts in this frame. The engine fires that delegate once per cycle, not per incremental slice (`GarbageCollection.cpp:5724–5742`) |
+| `double CyclePauseMs` | The engine's own timing of the blocking call (`GetLastGCDuration`), the per-cycle pause metric M1 |
+| `int32 UObjects` | The live UObject count, the same value as 5.8's "UObject Count" trace counter (`LevelTick.cpp:1973`), because the CSV `ObjectCount` stat is compiled out (01b B-4) |
+| `DECLARE_MULTICAST_DELEGATE_OneParam(FOnGCBudgetFrameStats, …)` | A native (C++-only) multicast delegate type. Native, not dynamic: no Blueprint binding is needed, and a native broadcast is a cheap list walk, not a reflection call |
+| `UCLASS(MinimalAPI)` | Exports only what other modules need to *use* the class (`StaticClass`, so `GetSubsystem<UGCBudgetTelemetrySubsystem>()` works from the game module). The members marked `UE_API` are exported individually |
+| `class UGCBudgetTelemetrySubsystem : public UWorldSubsystem` | One instance per world, created and destroyed with it. *Rejected:* an engine subsystem (there is no world tick to bracket), an actor (needs a map to place it), a tickable subsystem (a tick runs *inside* the frame, but the bracket must sit *around* the engine's GC call). The class comment also lists what else runs inside the bracket (async-trace finish, net-driver flushes, the FX and SpeedTree ticks, the CSV world counts): small and steady in this workload, removed as the floor, and checked against Insights' own timer |
+| `GENERATED_BODY()` | Inserts the reflection boilerplate UHT generated for this class |
+| `FOnGCBudgetFrameStats OnFrameStats` | The public event later steps (the demo overlay) can bind to. A plain member, not a `UPROPERTY`: native delegates aren't reflected |
+| `GetLastFrameStats()`, `GetTotalCycleStarts()`, `GetCycleStartsOutsideBracket()` | Inline read-only accessors. The director's run report uses the two counters: cycles that started inside this world's bracket (they must equal the director's requests) and cycles that started elsewhere (map load, another world's tick, telemetry switched off) |
+| `Initialize` / `Deinitialize` (`UE_API virtual … override`) | `USubsystem`'s lifetime hooks. The delegates are **global**, so binding happens once per subsystem and unbinding is mandatory. A missed `Remove` would leave a dangling `this` in a process-wide delegate |
+| `DoesSupportWorldType` (protected) | Restricts creation to Game and PIE worlds. Protected in the base (`Runtime/Engine/Public/Subsystems/WorldSubsystem.h:61–66`), so the override is too |
+| `HandlePostActorTick`, `HandleWorldTickEnd`, `HandlePreGarbageCollect`, `ResetFrame` (private) | The three callbacks, whose parameter lists match the delegate types exactly (`Runtime/Engine/Classes/Engine/World.h:4519, 4526`; `FSimpleMulticastDelegate`), and one helper that closes the bracket and clears the frame's scratch state |
+| `FDelegateHandle …Handle` ×3 | What `Add…` returns; `Remove(Handle)` needs it to unbind precisely this binding |
+| `double BracketStartSeconds = -1.0` | The clock value when the bracket opened; negative while it is closed |
+| `bool bWorkPendingAtOpen`, `int32 CycleStartsThisFrame`, `int32 TotalCycleStarts`, `int32 CycleStartsOutsideBracket`, `FGCBudgetFrameStats LastFrame` | Per-frame scratch state and the run totals |
+
+### B2. `GCBudgetTelemetrySubsystem.cpp`
+
+| Line(s) | What it does, and why |
+|---|---|
+| Includes | `Engine/World.h` (`FWorldDelegates`, `UWorld`), `HAL/IConsoleManager.h` (the cvar), `HAL/PlatformTime.h` (the clock), `ProfilingDebugging/CsvProfiler.h` (CSV macros), `UObject/GarbageCollection.h` (`GetLastGCDuration`, `GarbageCollection.h:199`), `UObject/UObjectArray.h` (`GUObjectArray`, `UObjectArray.h:1674`), `UObject/UObjectGlobals.h` (the pending-work queries, `UObjectGlobals.h:979, 986, 1000`, and `FCoreUObjectDelegates`) |
+| `#include UE_INLINE_GENERATED_CPP_BY_NAME(…)` | Compiles UHT's generated `.gen.cpp` into this file instead of separately, the 5.x pattern for faster builds |
+| `CSV_DEFINE_CATEGORY(GCBudget, true)` | Creates the CSV category, enabled by default. Every stat below becomes a column `GCBudget/<Name>` (category prefix, no thread prefix for custom stats: `Runtime/Core/Private/ProfilingDebugging/CsvProfiler.cpp:2447–2457`) |
+| `TAutoConsoleVariable<int32> CVarTelemetry(TEXT("gcb.Telemetry"), 1, …, ECVF_Default)` | A console variable owned by this file. `ECVF_Default`, not a cheat flag, so it can be set from config or the command line in any build. The `gcb.` prefix keeps the project's cvars apart from the engine's `gc.` ones |
+| `IsGCWorkPending()` | True while the current cycle still owes work: an incremental reachability slice, unhashing or purging. Those three queries are exactly what `ConditionalCollectGarbage` checks before choosing its branch (`UnrealEngine.cpp:2276–2294`) |
+| `DoesSupportWorldType` | Game and PIE only |
+| `Initialize` | `AddUObject(this, &ThisClass::…)` binds a member function. The binding checks that the object is alive before each call. `ThisClass` is the alias `GENERATED_BODY` provides |
+| `Deinitialize` | Removes all three bindings before `Super::Deinitialize()`, the reverse of `Initialize` |
+| `HandlePostActorTick` | Ignores other worlds and the "off" setting. It records whether work is already pending, then reads the clock **last**, so the checks themselves are outside the bracket |
+| `HandlePreGarbageCollect` | The delegate is global: **every** process-wide GC fires it. Only a cycle that starts while this world's bracket is open (`BracketStartSeconds >= 0`) ran inside the bracket, so only that one is counted for the frame. A cycle started anywhere else is counted in `CycleStartsOutsideBracket` and never published as a GC frame. *Found in review (S1):* the first version counted every cycle, so a GC during map load or another PIE world's tick would have been attributed to the next frame's bracket |
+| `HandleWorldTickEnd` | Ignores other worlds. When telemetry is off it still calls `ResetFrame()`, so switching it back on can never publish a stale start time (*found in review*). Otherwise it reads the clock **first**, so building and publishing the stats is outside the bracket |
+| `Stats.CyclePauseMs = … GetLastGCDuration() * 1000.0` | **A subtle point found in the source.** `GetLastGCDuration()` is stored *after* the blocking GC call returns, and that is after `PostGarbageCollect` has already fired (`GarbageCollection.cpp:5666–5675` vs :5943). A `PostGarbageCollect` handler would read the **previous** cycle's value. `OnWorldTickEnd` runs after `ConditionalCollectGarbage` returns, so the value read there is this cycle's |
+| `GUObjectArray.GetObjectArrayNumMinusAvailable()` | The live object count (`UObjectArray.h:1266–1269`) |
+| Five `CSV_CUSTOM_STAT(GCBudget, …, ECsvCustomStatOp::Set)` | One value per frame per column. `Set` replaces, so the last write in a frame wins. The `bool` is written as 0/1 (`int32` overload; the double overload carries the ms values, `CsvProfiler.h:438–443`). Each call costs tens of nanoseconds, so five per frame are negligible |
+| `ResetFrame()`, then `OnFrameStats.Broadcast(Stats)` | Listeners get the finished frame. Resetting *before* broadcasting means a listener can't observe a half-reset state |
+
+**What would break if…**
+- *…the clock were read before the pending checks in `HandlePostActorTick`?* The bracket would include three function calls of our own: a small, constant bias in every frame. The floor would remove it, but it is better not to measure ourselves.
+- *…`CyclePauseMs` were read in a `PostGarbageCollect` handler?* Every value would belong to the previous cycle. With identical cycles nobody would notice, until the first spike appeared one cycle late.
+
+### B3. `GCBBenchmarkSubsystem.h` (game module, public)
+
+| Line(s) | What it does, and why |
+|---|---|
+| `enum class EGCBConfig : uint8 { None, E0 }` | The configurations this build understands. S1 has only `E0`; later steps add `U0`–`S0` as their stores exist, and an unknown name is rejected (B4) instead of silently running something else |
+| Class comment | The cadence design and the run timeline, so the file explains itself |
+| `UCLASS()` + `UTickableWorldSubsystem` | One director per game world that ticks every frame (`WorldSubsystem.h:80`). No `MinimalAPI`: nothing outside this module uses it |
+| `OnWorldBeginPlay` | Runs once the world starts play: the right moment to read settings and set up the run |
+| `Deinitialize` (`USubsystem`) | Restores every console variable the run changed (B4) |
+| `Tick` / `GetStatId` | `FTickableGameObject`'s interface. `GetStatId` names this tickable in the stats system |
+| `DoesSupportWorldType` (protected) | Game and PIE only |
+| `struct FRunSettings` | Every command-line value, read once into plain fields. Defaults match `02` §7: GC every 120 frames, 10 s warm-up, 60 s capture |
+| `enum class ERunPhase` | `Idle` → `WarmUp` → `Capture` → `Done` |
+| `ParseConfig`, `ValidateRunSettings`, `ApplyGCSettings`, `UpdateGCCadence`, `WriteRunReport` | One responsibility each (B4) |
+| `int64 FrameIndex`, `BenchStartFrame`, `BenchEndFrame` | Frame counters, 64-bit so they can never wrap, even in a long soak |
+| `int32 GCRequests`; `TArray<TPair<FString, FString>> ChangedConsoleVariables` | Cycles the director asked for, which the run report compares with the telemetry's count. And every console variable the run changed, with its previous value, for `Deinitialize` |
+
+### B4. `GCBBenchmarkSubsystem.cpp`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `DEFINE_LOG_CATEGORY_STATIC(LogGCBBench, Log, All)` | A log category private to this file, verbosity `Log` |
+| `CSV_DEFINE_CATEGORY(GCBWorkload, true)` | The workload's CSV columns and the category of the capture events |
+| `ParkedTimerSeconds = TEXT("3600")` | The value that moves the engine's own GC timer out of the way. It must stay **> 0**, because `ConditionalCollectGarbage` starts a cycle only if the interval is positive (`UnrealEngine.cpp:2284`), and `ForceGarbageCollection` relies on that branch |
+| `ExitDelayFrames = 3` | Gives the CSV profiler time to write its file before the game quits (the same value the reference project verified) |
+| `SetConsoleVariable(Name, Value, OutPrevious)` (static) | Finds the cvar, remembers its current value, sets the new one with `ECVF_SetByCode` (above project settings and the command line, `IConsoleManager.h:155–187`), logs both and writes the new one into the CSV metadata. A missing cvar is an `Error`, which makes the runner reject the run |
+| `RecordConsoleVariable(Name)` (static) | The same without changing anything: the capture states its own GC environment |
+| `JsonEscape(Value)` (static) | A few lines of hand-written escaping: a backslash before every `"` and `\`, and a four-digit unicode escape (`\u00XX`) for every character below 0x20, so a run tag can never break the report's JSON. *Found in review, twice:* the first version wrote the tag unescaped; the second used `FString::ReplaceCharWithEscapedChar()`, whose set includes `\'` (`Runtime/Core/Public/Containers/UnrealString.h.inl:1881`), which JSON does not allow, and which leaves every other control character as it is |
+| `SetGCVariable(Name, Value)` / `Deinitialize()` | Every change goes through `SetGCVariable`, which records the previous value; `Deinitialize` sets each one back. A world that outlives the benchmark (PIE, map travel) then never inherits a parked GC timer (*found in review*: the first version never restored it) |
+| `ReadRunSettings` | `FParse::Value` for each `-GCB…=` value and `FParse::Param` for the `-GCBExit` flag. The prefix keeps them apart from engine switches |
+| `ParseConfig` | Case-insensitive name → enum; anything else → `None` |
+| `ValidateRunSettings` | Rejects an unknown config, items with E0, and impossible timings. **A rejected run stays idle and writes no report**, so the runner flags it (`run_bench.py`: report missing, log errors) instead of measuring an empty world by mistake |
+| `ApplyGCSettings` | Parks the timer through `SetGCVariable` (unless `-GCBGCFrames=0`, a diagnostic run at the engine's default cadence). It records `gc.VerifyAssumptions`, which must read 0 under `-NoVerifyGC`, plus parallel GC, clustering, incremental reachability and the purge time limit |
+| `OnWorldBeginPlay` | Reads and validates the settings, applies the GC settings, starts the warm-up and writes the run description into the CSV metadata |
+| `UpdateGCCadence` | `FrameIndex % GCFrames == 0` gives a request every 120 frames. `GEngine->ForceGarbageCollection(false)` only moves the engine's timer (`UnrealEngine.cpp:2136–2139`). The cycle starts later in the **same** frame, inside `ConditionalCollectGarbage`, through the normal branch (:2282–2287), or after a still-running purge finishes. `GCTrigger` marks the request frame in the CSV |
+| `Tick` | Counts frames; runs the cadence in warm-up and capture; moves through the timeline like the reference project's director. `CSV_EVENT(GCBWorkload, TEXT("BenchStart"))` is the capture's start event: `-csvStartOnEvent=BenchStart` matches the event name whatever its category (`CsvProfiler.cpp:5081`) |
+| `WriteRunReport` | A small JSON file written one frame after `BenchEnd` (outside the capture): the settings (strings escaped), the frame counters, the director's GC requests, and the telemetry's cycle counts inside and outside the bracket. `%lld` for `int64`, which is `long long` on this platform |
+
+**Why the director owns the cadence instead of setting the engine timer to 2 s:** the timer field is private (`Engine.h:2006–2012`), and later configurations (U1) must do work in the frame *before* a cycle. Only the code that triggers the cycle knows which frame that is (02 §6).

@@ -1,6 +1,6 @@
 # 04 · C++ Fundamentals: GCBudget
 
-**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 4. Phase 4 has almost no C++, so most of this file covers the *other* languages the foundation is written in (C# build rules, Windows batch, Python). Phase 5 adds the C++ topics the stores and handles need (pointers vs indices, templates, bit arrays, `const` correctness, `static_assert`).
+**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S1. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
 
 ---
 
@@ -50,3 +50,61 @@
 - `GetCurrentProcess()` returns a *pseudo-handle* to the calling process: it needs no `CloseHandle`, which is why pinning the runner itself is simpler than opening and pinning each child process.
 - `try … finally` (used by the Phase 5 runner) guarantees the game's process tree is killed even if a run fails or times out.
 - `python -I` (isolated mode) ignores environment variables and the user's site-packages, and does not put the script's folder first on the import path. Scripts behave the same on every machine and can't pick up a stray module by accident.
+
+---
+
+## C++ added in step S1
+
+## 6. Classes, inheritance, `virtual` and `override`
+
+- `class UGCBudgetTelemetrySubsystem : public UWorldSubsystem` inherits everything the base class has and **overrides** some of its virtual functions (`Initialize`, `Deinitialize`, `DoesSupportWorldType`).
+- `virtual` means "the call is decided at run time by the object's real type": the engine holds a `UWorldSubsystem*` and still calls *our* `Initialize`.
+- `override` asks the compiler to check that a base function with exactly this signature exists. A typo or a wrong parameter type then fails to compile instead of silently creating a new, never-called function.
+- `Super::Initialize(Collection)` calls the base version first. `Super` is a type alias that `GENERATED_BODY()` defines, so the code doesn't repeat the base class's name.
+
+## 7. Access control: `public`, `protected`, `private`
+
+- `public`: anyone can call it (`OnWorldBeginPlay`, `Tick`, `GetLastFrameStats`).
+- `protected`: the class and its subclasses. `DoesSupportWorldType` is protected in the engine's base class, so our override is too.
+- `private`: this class only. The callbacks and the per-frame state can't be changed from outside, so nothing else can break the bracket's bookkeeping.
+
+## 8. `struct` vs `class`, and default member initialisers
+
+- In C++ the only difference is the default access: `struct` is public, `class` is private. The project uses `struct` for plain data (`FGCBudgetFrameStats`, `FRunSettings`) and `class` for objects with behaviour.
+- `double BracketMs = -1.0;` is a **default member initialiser**: every new object starts with that value, with no constructor needed. −1 is a deliberate "not measured" marker.
+
+## 9. `enum class` with an underlying type
+
+- `enum class EGCBConfig : uint8 { None, E0 };` is a scoped, strongly typed enumeration.
+  - The names must be written `EGCBConfig::E0`, so they can't clash with other names.
+  - It doesn't convert to `int` silently.
+  - `: uint8` stores it in one byte.
+- The ordinary C++ `enum` would leak `E0` into the surrounding scope and convert to an integer without a cast.
+
+## 10. `static` functions in a `.cpp`: internal linkage
+
+- `static void SetConsoleVariable(...)` inside `namespace GCBBench` in a `.cpp` file has **internal linkage**: it is visible in that file only.
+- Two files can then define helpers with the same name without the linker complaining. This matters in unity builds, where UBT glues several `.cpp` files together.
+- `const TCHAR* const ParkedTimerSeconds = …` is a constant pointer to constant text. A namespace-scope `const` also has internal linkage.
+
+## 11. `double`, `int32`, `int64`, and printf-style format specifiers
+
+- `double` holds about 15–16 significant digits. Timings are computed from `FPlatformTime::Seconds()` (seconds since some point in the past) as differences of two large numbers, so `float`'s 7 digits would lose sub-microsecond detail.
+- `int64` for frame counters: at 60 fps an `int32` would last over a year, but a 64-bit counter can never wrap and costs nothing here.
+- `FString::Printf` and `UE_LOG` use C printf formats:
+  - `%d` for `int32`;
+  - `%lld` for `int64` (`long long` on Windows);
+  - `%.3f` for a `double` with three decimals;
+  - `%s` with `*SomeFString` (the `*` gives a `TCHAR*`);
+  - `0x%08X` for a `uint32` in hexadecimal.
+  - A mismatched specifier is undefined behaviour, which is why each one matches its argument's type.
+
+## 12. Member-function pointers and binding (`&ThisClass::HandlePostActorTick`)
+
+- `&ThisClass::HandlePostActorTick` is a pointer to a member function. Calling it needs an object, which is why `AddUObject(this, &ThisClass::…)` takes both.
+- The delegate stores the pair and calls `(this->*Function)(Args…)` when broadcast. Because it was bound with `AddUObject`, it also checks that the object still exists.
+- `FDelegateHandle` is a small id for one binding, so exactly that binding can be removed later.
+
+## 13. Lambdas are not used yet
+
+S1 needs no lambdas. They arrive in S4 (the probe loop), where they are explained with the code.

@@ -73,6 +73,46 @@ So in the packaged build every object loaded at start-up is excluded from GC wor
 
 ---
 
-## Phase 5 onward
+## Phase 5 · Implementation
 
-*(Filled in step by step: see `03`.)*
+Every build and game run goes through the job queue; the steps of one job are chained with `&&`, so a failure stops the chain. Paths are relative to `P04_GCBudget\`.
+
+### S1 · Telemetry and director, E0 only (2026-11-21)
+
+| Queue job | What changed before it | Outcome |
+|---|---|---|
+| 4 · `20261121_030143_118795` | First S1 and S2 code | Builds, package and the E0 batch `2026-11-21_031914_s1e0` ✅. The traced run `2026-11-21_032015_s1trace` ❌ wrote **no trace** (S2 section) and exited 777003, so the chain stopped before the bracket validation |
+| 5 · `20261121_032950_9d9f11` | Every fix in the audit trail below | Builds, package and the E0 batch `2026-11-21_035628_s1e0b` ✅; the traced run `2026-11-21_035728_s1traceb` wrote its trace and exited 777003 again (S2 section). **The committed state** |
+
+S1 has no automation tests. Its checks are packaged runs, measured with the S2 tools (committed in the next step):
+
+| # | Check | Command | Result (job 5) |
+|---|---|---|---|
+| S1-1 | Editor target builds | `Tools\build.bat GCBudgetEditor Development` | ✅ 8 actions (3 compiles, 4 links, metadata), 9.90 s, **0 errors, 0 warnings** |
+| S1-2 | Game target builds | `Tools\build.bat GCBudget Development` | ✅ 5 actions, 17.32 s, **0 errors, 0 warnings** |
+| S1-3 | Package a Development build | `Tools\package.bat Development` | ✅ BUILD SUCCESSFUL, BuildCookRun 57.38 s, cook "0 error(s), 0 warning(s)" |
+| S1-4 | E0: cadence, cycle count, pause, counters, GC settings | `python -I -u Tools\run_bench.py --configs E0 --items 0 --runs 3 --warmup 5 --capture 20 --label s1e0b`, then `python -I Tools\check_batch.py 2026-11-21_035628_s1e0b` | ✅ in all 4 runs (priming included): 1,200 captured frames; **10 cycle starts, exactly 120 frames apart, on the director's trigger frames**; the engine's own `GC/Count` also 10; `CyclePauseMs` > 0 on every cycle frame and 0 on every other; the run report's 12 requests = 12 cycles inside the bracket, **0 outside**; `gc.VerifyAssumptions` false and the timer at 3600 in the log; 0 log errors, 0 warnings; UObjects constant at 35,501 |
+| S1-5 | The same on the traced run | `python -I Tools\check_batch.py 2026-11-21_035728_s1traceb` | ✅ the same counts and settings; the trace file exists |
+| S1-6 | Bracket vs Insights' `ConditionalCollectGarbage` timer | `python -I -u Tools\validate_bracket.py --label s1traceb`, in its own queue job | ⏳ queued (S2 section) |
+
+(The run report counts the whole run, warm-up included: 12 requests in 1,501 frames. The CSV holds only the 20 s capture: 10 cycles.)
+
+**E0 in numbers.** These describe the empty project with 20 s captures; they are checks of the instrument, not results. Each cell is the median across the 3 runs, then [min–max]:
+
+| Batch | Cycle pause p95 / max (ms) | GC frame ms p95 | Floor (ms) | GameThreadTime median (ms) | UObjects |
+|---|---|---|---|---|---|
+| `s1e0` (job 4) | 2.623 [2.008–2.740] / 2.713 [2.652–2.759] | 1.920 [1.887–2.408] | 0.028 [0.026–0.029] | 1.273 [1.246–1.276] | 35,501 |
+| `s1e0b` (job 5) | 1.089 [0.996–2.762] / 1.152 [1.068–2.904] | 1.072 [0.997–1.839] | 0.028 [0.027–0.030] | 1.278 [1.251–1.287] | 35,501 |
+
+**An observation, not explained yet.** The cycle pauses fall into two groups. Of the 100 cycles in the 10 E0 runs of jobs 4 and 5 (priming and traced runs included), 89 took 0.5–1.2 ms and 10 took 2.6–2.9 ms (one 1.9 ms). The slow ones came one or two per run, in 6 of the 10 runs, at no fixed position. With only 10 cycles per capture, one slow cycle decides the p95, which is why the two batches' p95 differ so much. The cause is **[unverified]**. The baseline and Phase 8 batches use 60 s captures (30 cycles), and Phase 8's diagnostics batch (`LogGarbage` breakdown) is where a slow cycle gets taken apart.
+
+**Audit trail (S1 code):**
+1. **Review** (the code-review skill at medium, over the whole S1+S2 change): 10 findings, all fixed before job 5. Five concern S1:
+   - The telemetry counted **every** GC cycle, including those started outside its bracket (map load, another world's tick). Now only a cycle that starts while the bracket is open counts; the others are counted separately and reported (`05` B2).
+   - The director parked the GC timer and **never restored it**. Every change now goes through `SetGCVariable`, and `Deinitialize` restores them all (`05` B4).
+   - A comment claimed the bracket contains no other variable work. The class comment now lists what else runs inside it (`05` B1).
+   - With telemetry switched off, a stale bracket start could be published when it was switched on again. The disabled path now resets the frame (`05` B2).
+   - The run tag went into the JSON report unescaped (`05` B4).
+2. **Clean-up pass** (a structured self-review; this project uses no sub-agents): no change to the S1 code.
+3. **Found by reading the patched code before job 5:** the script that applied a review fix put a real line break inside a `TEXT("…")` literal, which would not have compiled (`07` §3).
+4. **Found by the S3–S5 review** (code-review, medium), and fixed before job 5: the first escaper, `FString::ReplaceCharWithEscapedChar()`, emits `\'`, which JSON does not allow (`Runtime/Core/Public/Containers/UnrealString.h.inl:1881`). It is now a few explicit lines (`05` B4).

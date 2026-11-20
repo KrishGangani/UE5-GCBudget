@@ -1,6 +1,7 @@
-# 02 · System Architecture: GCBudget (v1.0, final)
+# 02 · System Architecture: GCBudget (v1.1)
 
 **Phase:** 3 (Architecture), **final**, 2026-11-21. The only earlier plan was the one-row summary in the README; §13 lists what changed from it.
+**Revised:** 2026-11-21 in Phase 5 step S1, where the code and its review proved three details wrong; §14 lists them.
 **Engine:** UE 5.8.4. Every engine behaviour relied on here is verified in [01b_Research_Findings.md](01b_Research_Findings.md); references like `01b #3` point to its §1 table.
 **Rule:** this is the design *before* code. If implementation proves a decision wrong, this file is updated in the same step.
 
@@ -67,7 +68,7 @@ D:\UNREAL PORTFOLIO\P04_GCBudget\Tools\                        ← build/package
 |---|---|---|---|
 | `FGCBudgetHandle` | `USTRUCT(BlueprintType)`: `int32 Index = INDEX_NONE`, `int32 Generation = 0` | A stable, copyable reference to an item in a struct store. `IsSet()`, `==`, `GetTypeHash` | A USTRUCT so it can live in `UPROPERTY`s and pass through Blueprint as an opaque value. `int32` fields, not `uint32`, because Blueprint has no unsigned 32-bit type. *Rejected:* raw indices (silently read a reused slot); pointers into the array (dangle on reallocation) |
 | `FGCBudgetSlotAllocator` | Plain C++ class (no UObject, no reflection): `TArray<int32> Generations`, `TArray<int32> FreeSlots` (LIFO), `TBitArray<> Alive`, `int32 NumAlive` | Hands out slot indices with generations: `Allocate()`, `Release(Handle)`, `Resolve(Handle)`, `IsSlotAlive(Index)`, `Num()`, `NumSlots()`, `Reset()` | **The owner keeps the data** in its own `UPROPERTY() TArray<FItem>`, indexed by slot. Reflection, GC visibility (for S1's references) and Blueprint access stay correct by construction. The allocator holds only integers, so it is unit-testable without a world. *Rejected:* a template container `TGCBudgetArray<T>` that owns the data (templates can't be `UPROPERTY`; S1's references would need a hand-written `AddReferencedObjects`); a dense array with an indirection table (an extra lookup per access for no benefit when expired slots are refilled at once, §7) |
-| `UGCBudgetTelemetrySubsystem` | `UWorldSubsystem`, Game and PIE worlds only | Per frame: timestamps `FWorldDelegates::OnWorldPostActorTick` and `OnWorldTickEnd` for **its** world (the bracket around `ConditionalCollectGarbage`, `01b` #14); flags GC frames (a cycle started via `PreGarbageCollect`, or incremental reachability, unhash or purge was pending when the bracket opened); reads `GetLastGCDuration()` in `PostGarbageCollect`; reads the live UObject count. Publishes CSV stats once per frame and a native `OnFrameStats` delegate | A world subsystem has exactly the world's lifetime and needs no actor in a map. Delegates rather than a tick, because the bracket must sit *around* the engine's GC call. *Rejected:* a custom `UGameEngine` subclass (the GC call isn't virtual, `01b` #14; only its start could be hooked); the engine's CSV GC column alone (partial, `01b` #14); `UE::GC::Private::FStats` (not exported); an engine subsystem (no world tick to bracket) |
+| `UGCBudgetTelemetrySubsystem` | `UWorldSubsystem`, Game and PIE worlds only | Per frame: timestamps `FWorldDelegates::OnWorldPostActorTick` and `OnWorldTickEnd` for **its** world (the bracket around `ConditionalCollectGarbage`, `01b` #14); flags GC frames (a cycle started via `PreGarbageCollect` **while its bracket was open**, or incremental reachability, unhash or purge was pending when the bracket opened); counts cycles that start outside the bracket separately; reads `GetLastGCDuration()` when the bracket closes, because the engine stores it only after `PostGarbageCollect` (§14); reads the live UObject count. Publishes CSV stats once per frame and a native `OnFrameStats` delegate | A world subsystem has exactly the world's lifetime and needs no actor in a map. Delegates rather than a tick, because the bracket must sit *around* the engine's GC call. *Rejected:* a custom `UGameEngine` subclass (the GC call isn't virtual, `01b` #14; only its start could be hooked); the engine's CSV GC column alone (partial, `01b` #14); `UE::GC::Private::FStats` (not exported); an engine subsystem (no world tick to bracket) |
 
 **Telemetry CSV stats** (category `GCBudget`, enabled by default, one value per frame):
 
@@ -92,9 +93,9 @@ D:\UNREAL PORTFOLIO\P04_GCBudget\Tools\                        ← build/package
 | `FGCBItemDataRef` | `USTRUCT` | S1 element: the same with `TObjectPtr<UGCBItemDef> Def` instead of `DefIndex`. One reference per element |
 | `UGCBItemStore` | abstract `UObject` | The store interface the director calls: `Populate`, `Update(Dt)`, `RunProbe`, `Checksum`, `PrepareForGC` (no-op except U1) |
 | `UGCBObjectItemStore` / `UGCBStructItemStore` / `UGCBStructRefItemStore` | `UGCBItemStore` | U0/U1/U2 (`bClusterPages` for U1); S0; S1. The two struct stores share one private implementation template over the element type, so their logic cannot drift apart |
-| `UGCBBenchmarkSubsystem` | `UTickableWorldSubsystem`, Game and PIE | The director. Reads `-GCB…=` values; applies GC cvars from code; creates the definitions and the store; per frame updates the store, runs the probe, owns the GC trigger, publishes workload CSV stats and the capture events; writes the run report; requests exit. A subsystem rather than an actor, because the project has no authored map (the same reason P01 gave, verified there) |
+| `UGCBBenchmarkSubsystem` | `UTickableWorldSubsystem`, Game and PIE | The director. Reads `-GCB…=` values; applies GC cvars from code and restores each one in `Deinitialize`; creates the definitions and the store; per frame updates the store, runs the probe, owns the GC trigger, publishes workload CSV stats and the capture events; writes the run report; requests exit. A subsystem rather than an actor, because the project has no authored map (the same reason P01 gave, verified there) |
 
-**Command line** (all optional; defaults in §7): `-GCBConfig=U0|U1|U2|S1|S0`, `-GCBItems=`, `-GCBSeed=`, `-GCBGCFrames=`, `-GCBWarmup=`, `-GCBCapture=`, `-GCBProbe=`, `-GCBReport=` (output folder).
+**Command line** (all optional; defaults in §7): `-GCBConfig=U0|U1|U2|S1|S0`, `-GCBItems=`, `-GCBSeed=`, `-GCBGCFrames=`, `-GCBWarmup=`, `-GCBCapture=`, `-GCBProbe=`, `-GCBRunTag=` (the run report's name, written to `Saved/GCBRuns/`), `-GCBExit` (quit once the report is written).
 
 **Workload CSV stats** (category `GCBWorkload`): `Items`, `Expired`, `UpdateMs`, `UpdateNsPerItem`, `ProbeNsPerLookup`, `ProbeErrors`, `ClusterMs` (U1 only), `GCTrigger` (1 on the frame the director requests a cycle).
 
@@ -150,10 +151,9 @@ sequenceDiagram
   W->>T: OnWorldPostActorTick → T0, pending flags
   W->>G: ConditionalCollectGarbage()
   opt cycle starts this frame
-    G-->>T: PreGarbageCollect → CycleStarts = 1
-    G-->>T: PostGarbageCollect → CyclePauseMs = GetLastGCDuration()
+    G-->>T: PreGarbageCollect → CycleStarts = 1 (bracket open)
   end
-  W->>T: OnWorldTickEnd → T1, BracketMs = T1 − T0, publish CSV, OnFrameStats
+  W->>T: OnWorldTickEnd → T1, BracketMs = T1 − T0, CyclePauseMs = GetLastGCDuration(), publish CSV, OnFrameStats
 ```
 
 **Order matters, and it is verified:** the director ticks inside `FTickableGameObject::TickObjects` (`LevelTick.cpp:1821`), before the GC call (`:1970`) in the same `UWorld::Tick`. U1's cluster rebuild therefore always lands in the frame the cycle starts, and is charged to that frame.
@@ -208,6 +208,7 @@ NewItem(lane) = parameters from Hash(Seed, lane, laneGeneration)   // order-inde
 | A clustered item kept alive after expiry | Expiry calls `MarkAsGarbage()` and drops the pointer. `PrepareForGC` dissolves and rebuilds the clusters of changed pages before each cycle, so dead items are no longer clustered when the GC looks | `01b` #10 |
 | A handle to a reused slot | `Resolve` compares generations. Every access goes through `Resolve`; raw indices are never stored across frames | §2 |
 | A pointer into a struct array after it grows | The stores `Reserve(N)` at populate and never grow during a run; code never keeps element pointers across `Allocate` | `TArray` reallocation semantics |
+| A parked GC timer leaking into the next world | Every cvar the director sets goes through one function that records the previous value; `Deinitialize` restores them all | §14 |
 | Telemetry outliving its world | Delegates are bound in `Initialize` and removed in `Deinitialize`; every callback checks that its world is the one ticking | §4.1 |
 | A hidden full purge | Nothing in the project calls `CollectGarbage()` or `ForceGarbageCollection(true)` (both full purges) | `01b` #2 |
 
@@ -265,3 +266,12 @@ All values are set with `IConsoleVariable::Set(…, ECVF_SetByCode)`, logged, an
 | U2 at 2 ms, not the 5 ms default | Epic's documented example; fits a 60 fps frame (`01b` #6) |
 | "Novel technique" → "measured study + toolkit" | The pattern is in the engine already (`01b` #15–16) |
 | Per-item access cost reported in ns, not µs | The expected scale (`01b` §2) |
+
+## 14. Changes made during implementation
+
+| Step | Change | Why |
+|---|---|---|
+| S1 | The cycle pause is read when the bracket closes (`OnWorldTickEnd`), not in `PostGarbageCollect` | The engine stores `GetLastGCDuration()` after that delegate fires, so a handler there sees the previous cycle (`07` §3) |
+| S1 | A cycle counts for a frame only if it starts while that world's bracket is open; others are counted separately and reported | `PreGarbageCollect` is global. A cycle during map load or another world's tick would otherwise be charged to the next frame (found in review, `09`) |
+| S1 | The director restores every console variable it changed | A world that outlives the benchmark (PIE, map travel) would otherwise keep a parked GC timer (found in review, `09`) |
+| S1 | `-GCBReport=` became `-GCBRunTag=` plus `-GCBExit` | The runner needs a known report name per run and a clean exit, not a folder choice |
