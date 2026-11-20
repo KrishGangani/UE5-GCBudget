@@ -1,6 +1,6 @@
 # 07 · Common Mistakes: GCBudget
 
-**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S1. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
+**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S2. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
 
 ---
 
@@ -30,7 +30,7 @@
 | Letting shared definitions join a cluster | The first cluster absorbs them, every other cluster references it, and dissolving it dissolves its referencers recursively | `Runtime/CoreUObject/Private/UObject/UObjectClusters.cpp:136–178, 741–751` | `UGCBItemDef::CanBeInCluster()` returns false (`02` §4.2) |
 | Keeping a raw index or element pointer into a struct array across frames | Indices get reused; pointers dangle when the array grows | `TArray` semantics | Handles with generations; `Reserve(N)` at populate (`02` §8) |
 
-## 3. Telemetry and director (S1)
+## 3. Telemetry and director (S1) and tools (S2)
 
 | Mistake | Why it is wrong | How to spot it | Prevention in this project |
 |---|---|---|---|
@@ -39,5 +39,10 @@
 | Binding a global delegate without removing it, or without checking the world | `FWorldDelegates` fire for every world; a dead listener left bound is a dangling `this` | Crashes after map travel; doubled stats in PIE | `Remove` in `Deinitialize`; every handler checks `InWorld != GetWorld()` (`05` B2) |
 | Reading the clock in the wrong order inside the bracket | Our own bookkeeping would be measured as GC time | A floor that drifts with code changes | Clock last when opening, first when closing (`05` B2) |
 | Running an unknown or unbuilt configuration silently | A typo in `-GCBConfig` would measure an empty world and look like a perfect result | A suspiciously good run | Unknown names are rejected with an `Error`; the run stays idle and writes no report, so the runner fails it (`05` B4) |
+| Launching the packaged **bootstrap** exe, or launching through `cmd /c start` | The bootstrap's exit code and kill don't reliably reach the real game; `start` always returns 0 | Failed runs counted as successes | `run_bench.py` launches `Build\Windows\GCBudget\Binaries\Win64\GCBudget.exe` directly, with a timeout and a kill in `finally` (`05` C2) |
+| Pinning each game after it starts | The engine's start-up threads already ran unpinned, and a per-run handle is extra work | Bimodal start-up timings | The runner pins **itself** first; children inherit the mask (`05` A10, C2) |
+| `python -I` with a sibling `import` | Isolated mode leaves the script's folder off `sys.path`, so `import csv_stats` fails | `ModuleNotFoundError` in the queue log | `sys.path.insert(0, TOOLS_DIR)` (`05` C2) |
 | A shell one-liner that embeds backslash paths in Python string literals | `\r`, `\v` and others become control characters in the output file | Corrupted documentation lines | *(Made while writing these docs.)* Write content with an editor or a script file, never inside `python -c "…"` |
+| Passing `-traceautostart=0` to a run that should be traced | The same switch that stops an open Insights from tracing a run also blocks a trace asked for with `-trace=`/`-tracefile=` (`Runtime/Core/Private/ProfilingDebugging/TraceAuxiliary.cpp:2017–2021`) | The traced run finishes and no `.utrace` file exists | *(Made in the first S1 job.)* `run_bench.py` adds the switch to untraced runs only (`05` C2) |
+| Chaining a traced validation after a traced run with `&&` | A traced run can fail for reasons outside the measured code (here: exit 777003 after its log had closed, `09` S2), and the chain then stops before the validation | The job fails although the trace was written | *(Made in jobs 4 and 5.)* The validation runs in its own short job on the recorded trace; traced runs never share a chain with untraced batches |
 | A script edit that puts a real line break inside a `TEXT("…")` literal | A string literal can't span source lines; the compiler rejects the file | A build error in a file the edit touched | *(Made while applying a review fix; found by reading the result before the build.)* After any scripted source edit, check every changed line for an unescaped `\n` and an even number of quotes |

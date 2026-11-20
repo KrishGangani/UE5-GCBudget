@@ -6,6 +6,7 @@
 |---|---|---|
 | A | Phase 4, F1–F3 (foundation) | `.uproject`, two `Target.cs`, two `Build.cs`, two module `.cpp`, `.uplugin`, three config `.ini`, `Tools\*.bat`, `Tools\cpu_affinity.py` |
 | B | Phase 5, S1 (telemetry + director, E0 only) | `GCBudgetTelemetrySubsystem.h/.cpp` (plugin), `GCBBenchmarkSubsystem.h/.cpp` (game) |
+| C | Phase 5, S2 (measurement tools) | `Tools\csv_stats.py`, `Tools\run_bench.py`, `Tools\validate_bracket.py`, `Tools\check_batch.py` |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -288,3 +289,64 @@ Copied from the portfolio's reference project (UE5-UpdateBudget, `Tools/run_benc
 | `WriteRunReport` | A small JSON file written one frame after `BenchEnd` (outside the capture): the settings (strings escaped), the frame counters, the director's GC requests, and the telemetry's cycle counts inside and outside the bracket. `%lld` for `int64`, which is `long long` on this platform |
 
 **Why the director owns the cadence instead of setting the engine timer to 2 s:** the timer field is private (`Engine.h:2006–2012`), and later configurations (U1) must do work in the frame *before* a cycle. Only the code that triggers the cycle knows which frame that is (02 §6).
+
+## Part C · Step S2: the measurement tools (`Tools\`)
+
+### C1. `csv_stats.py`
+
+Adapted from the reference project's script (P01's rules for reading a capture are kept unchanged). New in this project:
+
+| Part | What it does, and why |
+|---|---|
+| Constants `FPS`, `SPIKE_MS = 5.0`, `HITCH_MS = 1000/30` | The analysis thresholds live here, not in the game (02 §4.1), so changing them never needs a rebuild. 5 ms is 5.8.4's default incremental reachability slice (`GarbageCollection.cpp:310`); 33.3 ms is two 60 Hz frames |
+| Column-name constants | The exact CSV column names the telemetry and the engine write (`GCBudget/…`, `GC/Count`, `Exclusive/GameThread/GarbageCollection`) |
+| `summarize([])` → `{"n": 0}` | A configuration with no GC frames (possible in a short run) must produce an empty summary, not an exception |
+| `per_frame(header, rows, column, missing)` | One value per frame. `GC/Count` is written only on cycle frames, so its empty cells mean 0 |
+| `gc_metrics(...)`: the floor | Median bracket over frames where `GCFrame == 0` and the bracket opened (`BracketMs ≥ 0`) |
+| GC ms per GC frame | `max(0, bracket − floor)`. Clamped at 0: a GC frame cheaper than the median non-GC frame is noise, not negative GC time |
+| Cycles | A cycle-start frame plus the GC frames that follow it with no gap: the blocking frame, then purge frames, or incremental slices in U2. A cycle cut off by the **start or the end** of the capture is **partial** and left out of the per-cycle statistics (the end case was *found in review*) |
+| `cycle_pause_ms` | `CyclePauseMs` on cycle-start frames (M1) |
+| `cycle_total_ms`, `cycle_max_frame_ms`, `cycle_frames` | Per complete cycle: total GC work, the worst single frame, and how many frames it spread over. U2's whole point is the difference between "total" and "worst frame" |
+| `engine_gc_count`, `engine_gc_time_on_gc_frames_ms` | The engine's own columns, kept as cross-checks: the cycle count must equal ours, and the engine's partial GC time must stay below our bracket |
+| `spikes`, `hitches`, `minutes`, `…_per_min` | M3. Minutes = frames / 60 / 60, exact in a fixed-step run |
+| `selftest()` | Eight hand-made frames, where every expected value (floor 0.20, a partial first cycle, two complete cycles, one spike, one hitch) is worked out in the comments, plus a capture that ends mid-cycle |
+| `events_index(header)` / `frame_events(header, row, index)` | The EVENTS column is found once per capture, not once per frame (*clean-up pass*: the reference version lowercased the whole header on every frame) |
+
+### C2. `run_bench.py`
+
+Adapted from the reference project's runner. Unchanged parts: the batch name, interleaving with the config order rotated each round, the priming run, deleting `GameUserSettings.ini`, never overwriting raw data, and the manifest rewritten after every run. New or changed:
+
+| Part | What it does, and why |
+|---|---|
+| `sys.path.insert(0, TOOLS_DIR)` then `import cpu_affinity, csv_stats` | `python -I` leaves the script's folder off the import path, so the sibling modules are added explicitly |
+| `EXE = …\GCBudget\Binaries\Win64\GCBudget.exe` | The **real** game exe, not the bootstrap. The game is then a direct child, so its exit code and its kill are reliable |
+| `COMMON_ARGS`, `NO_AUTO_TRACE` | The protocol's fixed settings plus `-NoVerifyGC` (01b #11) and `-GCBExit`. Untraced runs add `-traceautostart=0`, so an open Insights can't trace them. **Traced runs must not**: the same switch also blocks a trace requested with `-trace=`/`-tracefile=` (`TraceAuxiliary.cpp:2017–2021`). *Found in the first S1 job:* the traced run wrote no trace file |
+| `CONFIGS = {"E0": "-GCBConfig=E0"}` | One entry per configuration, added in the step that builds it |
+| `environment_record(args)` | The reference record plus the GC cadence, any extra arguments, and **`cpu_affinity.applied_mask()`**: the mask Windows actually applied, read back |
+| `launch(...)` | Builds the command (with `-tracefile=` when `--trace`), resets `GameUserSettings.ini`, `Popen`s the exe, waits with a timeout of warm-up + capture + 180 s, and **kills the process tree in `finally`**, whatever happened |
+| `collect(...)` | Moves this run's CSV, run report (`Saved\GCBRuns\<name>.json`) and log into `Benchmarks\Raw`, and runs `csv_stats.analyse` on the capture |
+| `is_failure(...)` | A run fails on a non-zero exit, a timeout, no or partial capture, a missing log or report, or any `Error:` in the log |
+| `across_runs(values)` | "Median across runs [min–max]", the protocol's statistic |
+| `write_summary(...)` | One table row per (config, N): cycles, pause p95/max, GC-frame ms p95/max, spikes and hitches per minute, floor, UObjects, working set, game-thread median, log errors |
+| `main`: `pin_self` **before anything else** | Pins the runner to the P-cores, so every game it starts inherits the mask from its first instruction. It refuses to measure if pinning fails on a hybrid CPU. `SetThreadExecutionState` keeps the display awake during the batch, so a locked desktop can't throttle a windowed game |
+| `--label` check | Letters, digits, `_` and `-` only: the label becomes part of file names and of `-GCBRunTag`, which `FParse::Value` would cut at a space (*found in review*) |
+| `--runs 0` → number of configs | The protocol's balanced rotation |
+
+### C3. `validate_bracket.py`
+
+| Part | What it does, and why |
+|---|---|
+| Purpose | Checks that our bracket (minus its floor) measures what Insights' own `ConditionalCollectGarbage` timer measures (`LevelTick.cpp:1969`). That is the S1 acceptance check of the measurement method |
+| `export_timer(...)` | Deletes any previous export of the same run, writes a one-line **response file** and runs `UnrealInsights.exe -OpenTraceFile=… -AutoQuit -NoUI -ExecOnAnalysisCompleteCmd="@=<file>"`. The command `TimingInsights.ExportTimingEvents <csv> -columns=… -threads=GameThread -timers=ConditionalCollectGarbage` (`Developer/TraceInsights/Private/Insights/TimingProfiler/TimingProfilerManager.cpp:802`) is the same command line as Epic's functional test (`…/Tests/FunctionalTests/ExportCommandsTests.cpp:148`). The `@=` form (`…/Insights/InsightsManager.cpp:1089–1100`) avoids nested quotes, which a path with a space would otherwise need. The export must be newer than the launch, so a failed export can never be mistaken for a fresh one (*found in review*). The process is killed in `finally` if it outlives the timeout |
+| `compare(...)` | A trace event is a **cycle frame** if it lasts more than 10× the median event (and at least 0.2 ms): GC cycle frames are an order of magnitude longer than the rest, so no alignment with the CSV is needed. (*The first version used fixed 120-event windows from the start of the trace, which start-up frames would have misaligned: found in review.*) It compares those durations with the CSV's GC ms on cycle-start frames whose bracket opened, and the trace's other frames with the floor. **A distribution comparison, not frame by frame**: the trace covers the whole run, the CSV only the capture |
+| `--label` | Picks the newest traced, non-priming run whose **batch label** is exactly the one given (a regular expression on the batch-name prefix, so a label like `E0` can't match a config name) |
+
+### C4. `check_batch.py`
+
+| Part | What it does, and why |
+|---|---|
+| Purpose | The functional checks of S1 (and later steps) over a batch that is already recorded: it reads `Benchmarks\Raw` and starts nothing, so it needs no job queue. It gives every check in `09` a committed, repeatable command |
+| `check_run(csv_path)` | For one run, from its capture: the frames with a cycle start, their spacing, the director's `GCTrigger` frames, the engine's `GC/Count` column, the `CyclePauseMs` values and the UObject range. From its run report: requests and cycles inside and outside the bracket. From its log: `gc.VerifyAssumptions`, the GC timer, and the error and warning lines (timestamped `Log…: Error:` / `Warning:` lines only, so a message that merely contains the word isn't counted). It returns the list of failed checks |
+| The checks | No frame with two cycle starts; starts exactly `gc_frames` apart and on the trigger frames (unless `gc_frames` is 0, the engine-timer diagnostic); the engine's count equals ours; a pause on every cycle frame and on no other; requests = cycles inside the bracket; both GC settings present in the log; no log errors. A missing report or log fails the run (*found in the self-review*: it raised a traceback) |
+| `main(argv)` | Runs every capture of the batch, priming included; exit code 0 if all pass, 1 if any fails, 2 for a usage error or an unknown batch |
+| Reuse | Column names and the CSV parser come from `csv_stats.py`, so the two tools can't disagree about what a column means |

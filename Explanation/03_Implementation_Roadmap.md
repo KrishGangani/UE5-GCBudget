@@ -10,7 +10,7 @@
 
 ---
 
-**Progress (2026-11-21):** Phases 1–3 ✅. Phase 4 (F1–F3) ✅ (`09`: 0 errors, 0 warnings; packaged smoke run on the RTX GPU). Phase 5: S1 ✅ (`09`: 0 warnings; the E0 cadence and counters checked; the bracket validation runs in its own queue job). S2 next.
+**Progress (2026-11-21):** Phases 1–3 ✅. Phase 4 (F1–F3) ✅ (`09`: 0 errors, 0 warnings; packaged smoke run on the RTX GPU). Phase 5: S1 ✅, S2 ✅ (`09`: 0 warnings; the E0 cadence and counters checked; the bracket validation runs in its own queue job). S3 next.
 
 ## Phase 4: Foundation (no gameplay code yet)
 

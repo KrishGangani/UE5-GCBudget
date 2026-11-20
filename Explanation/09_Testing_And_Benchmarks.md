@@ -116,3 +116,32 @@ S1 has no automation tests. Its checks are packaged runs, measured with the S2 t
 2. **Clean-up pass** (a structured self-review; this project uses no sub-agents): no change to the S1 code.
 3. **Found by reading the patched code before job 5:** the script that applied a review fix put a real line break inside a `TEXT("…")` literal, which would not have compiled (`07` §3).
 4. **Found by the S3–S5 review** (code-review, medium), and fixed before job 5: the first escaper, `FString::ReplaceCharWithEscapedChar()`, emits `\'`, which JSON does not allow (`Runtime/Core/Public/Containers/UnrealString.h.inl:1881`). It is now a few explicit lines (`05` B4).
+
+### S2 · Measurement tools (2026-11-21)
+
+| # | Check | Command | Result |
+|---|---|---|---|
+| S2-1 | The statistics against hand-worked values | `python -I Tools\csv_stats.py --selftest` | ✅ "selftest: OK (percentiles, summary, event parsing and GC metrics match hand-worked values)", exit 0 |
+| S2-2 | The runner's command lines without running anything | `python -I Tools\run_bench.py --configs E0 --items 0 --runs 1 --label drycheck --dry-run` | ✅ two commands (priming, then run 1) for the real exe `Build\Windows\GCBudget\Binaries\Win64\GCBudget.exe`, each with `-traceautostart=0`; no file written |
+| S2-3 | One E0 batch end to end | job 5, S1-4 | ✅ 4 runs, each with its CSV, run report and log in `Benchmarks\Raw`; manifest and summary written. The environment record has `cpu_affinity` "0xFFFF (performance cores only; hybrid CPU)" read back from Windows, AC power, the Turbo power plan |
+| S2-4 | A traced run writes a trace | job 4, then job 5 | ❌ job 4: no `.utrace` at all, because `-traceautostart=0` also blocks a trace requested with `-trace=`/`-tracefile=` (`Runtime/Core/Private/ProfilingDebugging/TraceAuxiliary.cpp:2017–2021`; `07` §3). Fixed: traced runs leave it out (`05` C2). ✅ job 5: "Trace started (writing to file …)", a 40,960,423-byte trace. That run still exited 777003 (below) |
+| S2-5 | The batch checker | `python -I Tools\check_batch.py <batch>` on `2026-11-21_031914_s1e0`, `2026-11-21_035628_s1e0b`, `2026-11-21_035728_s1traceb`, and a batch that doesn't exist | ✅ "all runs pass", exit 0, for the three batches; exit 2 with a message for the missing one |
+| S2-6 | Bracket validation | `python -I -u Tools\validate_bracket.py --label s1traceb`, its own queue job | ⏳ queued behind other projects' jobs |
+
+**Exit code 777003 on traced runs: the evidence.**
+- Both traced runs (jobs 4 and 5) exited with 777003. Every untraced run before and after them exited with 0.
+- In job 5 tracing really started, the run completed its capture and its report, and the log ends normally ("LogExit: Exiting.", "Log file closed"). The process then ended with 777003. There is no crash folder and no dump.
+- 777003 is `ECrashExitCodes::CrashReporterCrashed` (`Runtime/Core/Public/GenericPlatform/GenericPlatformCrashContext.h:45`). On Windows the crash-reporting thread exits with it when it catches an exception **in its own loop** (`Runtime/Core/Private/Windows/WindowsPlatformCrashContext.cpp:1300–1345`).
+- So something crashed during shutdown, after the log had closed, and only with tracing on **[inferred]**. The cause is **not found [unverified]**.
+- **Decision** (the coordinator's rule: at most one retry): no further traced reruns. The trace that job 5 wrote is validated in a separate short job, and traced runs never share a chain with untraced batches again. The runner keeps treating any non-zero exit as a failed run, so a traced run is never used as measurement data.
+
+**Audit trail (S2 code):**
+1. **Review** (the code-review skill at medium, over the whole S1+S2 change): six of the ten findings concern S2, all fixed before job 5:
+   - `validate_bracket.py` could read a stale export from an earlier run. It now deletes it first and requires a file newer than the launch (`05` C3).
+   - It matched trace events to frames with fixed 120-event windows, which start-up frames would have misaligned. Cycle frames are now found by duration (`05` C3).
+   - It compared frames whose bracket never opened (`BracketMs` −1). They are skipped now (`05` C3).
+   - `csv_stats.py` counted a cycle cut off by the **end** of the capture as complete. Such cycles are partial now (`05` C1).
+   - `--label` was not validated, although it becomes part of file names and `-GCBRunTag` (`05` C2).
+   - `--label` in `validate_bracket.py` matched as a substring, so `E0` could match a configuration name. It now matches the batch label exactly (`05` C3).
+2. **Clean-up pass** (structured self-review): `frame_events` found the EVENTS column once per frame; it is now found once per capture. A lambda in the summary became a named nested function (`05` C1, C2).
+3. **`check_batch.py`** (added after job 5 from a throwaway checker, so that S1-4 has a committed command): a structured self-review fixed a membership test that rebuilt a set on every frame, and made a missing report or log a failed run instead of a traceback (`05` C4).
