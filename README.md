@@ -129,3 +129,7 @@ P04_GCBudget\
 ├── Tools\           ← build, package, smoke scripts; CPU pinning; (Phase 5) stats and runner
 └── GCBudget\        ← the Unreal Engine project
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE). Unreal Engine itself is not included and is covered by Epic Games' own license.
