@@ -15,6 +15,7 @@
 | Running a UE build or game directly instead of through the queue | *(Avoided.)* Ten projects share one machine; a stray compile corrupts another project's benchmark | — | Every UE job runs as `ue_queue.py run …` (`09` lists the exact commands) |
 | Expecting the Test configuration | The launcher engine can't build Test (portfolio fact, `research/04` §0b) | BuildCookRun: "Targets cannot be built in the Test configuration with this engine distribution" | Headline runs use packaged **Development** with the GC adjustments in `01` §7 |
 | A redirection in a queue command | *(Made in Phase 5.)* The S3/S4 job's first step was a gate, `dir <file> >nul`. The job log shows it reached `cmd` as `>/dev/null`, which `cmd` can't open, so the job failed in 0.0 s with "The system cannot find the path specified." although the file existed | A job that fails before its first `echo` | Queue commands use no redirection; a gate is `type <file>` (`09` S3) |
+| Running a heavy offline analysis without looking at the queue first | Ten projects share one machine. Parsing dozens of large captures takes CPU from whichever benchmark holds the queue | The queue status shows another project's batch in its measurement phase | *(Made in Phase 7: a 20 s parse of 33 baseline captures ran during another project's baseline batch; the coordinator was told which runs overlapped, `09` Phase 7.)* Check `ue_queue.py status` and the running job's last log line before any parse, and wait if it is measuring |
 
 ## 2. GC traps the Phase 5 code must avoid (from Phase 2)
 

@@ -146,4 +146,77 @@ bool FGCBudgetHandleRandomModelTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FGCBudgetHandleWrapTest, "GCBudget.Handles.GenerationWrapsToOne", GCBudgetHandleTests::Flags)
+bool FGCBudgetHandleWrapTest::RunTest(const FString& Parameters)
+{
+	// Phase 7: the generation's wrap-around, reached with the test hook instead of 2^31 releases of one slot.
+	FGCBudgetSlotAllocator Slots;
+	const FGCBudgetHandle FirstLife = Slots.Allocate();                 // slot 0, generation 1
+	Slots.SetGenerationForTesting(FirstLife.Index, MAX_int32);
+	const FGCBudgetHandle LastLife = Slots.GetHandle(FirstLife.Index);  // the same slot at generation MAX_int32
+	TestEqual(TEXT("the hook set the generation"), LastLife.Generation, MAX_int32);
+	TestTrue(TEXT("a handle at MAX_int32 is current"), Slots.IsValid(LastLife));
+	TestTrue(TEXT("releasing at MAX_int32 succeeds (no overflow)"), Slots.Release(LastLife));
+
+	const FGCBudgetHandle Wrapped = Slots.Allocate();
+	TestEqual(TEXT("LIFO reuses the same slot"), Wrapped.Index, FirstLife.Index);
+	TestEqual(TEXT("the generation wraps to 1, never to 0"), Wrapped.Generation, 1);
+	TestFalse(TEXT("the MAX_int32 handle is stale"), Slots.IsValid(LastLife));
+	TestFalse(TEXT("a default handle is still invalid"), Slots.IsValid(FGCBudgetHandle()));
+	TestFalse(TEXT("generation 0 still never matches"), Slots.IsValid(FGCBudgetHandle(FirstLife.Index, 0)));
+
+	// The documented limit (GCBudgetHandle.h, 02 section 12): after a full wrap, a handle from the slot's first life
+	// matches again. The test states it rather than hiding it.
+	TestTrue(TEXT("documented limit: a handle 2^31 - 1 releases old matches again"), Slots.IsValid(FirstLife));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FGCBudgetHandleGrowShrinkTest, "GCBudget.Handles.GrowShrinkRegrow", GCBudgetHandleTests::Flags)
+bool FGCBudgetHandleGrowShrinkTest::RunTest(const FString& Parameters)
+{
+	// Phase 7: an allocator that grows, shrinks (holes) and grows again, which the benchmark workload never does.
+	FGCBudgetSlotAllocator Slots;
+	TArray<FGCBudgetHandle> First;
+	for (int32 Index = 0; Index < 1000; ++Index)
+	{
+		First.Add(Slots.Allocate());
+	}
+	for (int32 Index = 0; Index < 1000; Index += 2)
+	{
+		Slots.Release(First[Index]);                                     // every other slot becomes a hole
+	}
+	TestEqual(TEXT("live after shrinking"), Slots.Num(), 500);
+	TestEqual(TEXT("slots kept after shrinking"), Slots.NumSlots(), 1000);
+	int32 WrongState = 0;
+	for (int32 Index = 0; Index < 1000; ++Index)
+	{
+		WrongState += (Slots.IsValid(First[Index]) == (Index % 2 == 1)) ? 0 : 1;
+	}
+	TestEqual(TEXT("released handles stale, kept handles current"), WrongState, 0);
+
+	TArray<FGCBudgetHandle> Regrown;
+	for (int32 Index = 0; Index < 700; ++Index)
+	{
+		Regrown.Add(Slots.Allocate());
+	}
+	int32 Reused = 0;
+	int32 Appended = 0;
+	for (const FGCBudgetHandle& Handle : Regrown)
+	{
+		Reused += (Handle.Index < 1000 && Handle.Generation == 2) ? 1 : 0;
+		Appended += (Handle.Index >= 1000 && Handle.Generation == 1) ? 1 : 0;
+	}
+	TestEqual(TEXT("the 500 holes are refilled first, with generation 2"), Reused, 500);
+	TestEqual(TEXT("then 200 new slots are appended, with generation 1"), Appended, 200);
+	TestEqual(TEXT("slots after regrowing"), Slots.NumSlots(), 1200);
+	TestEqual(TEXT("live after regrowing"), Slots.Num(), 1200);
+	int32 StaleRevived = 0;
+	for (int32 Index = 0; Index < 1000; Index += 2)
+	{
+		StaleRevived += Slots.IsValid(First[Index]) ? 1 : 0;
+	}
+	TestEqual(TEXT("no handle from before the shrink is current again"), StaleRevived, 0);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

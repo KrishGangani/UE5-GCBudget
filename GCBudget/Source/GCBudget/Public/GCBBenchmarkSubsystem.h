@@ -51,6 +51,8 @@ enum class EGCBConfig : uint8
  *   -GCBCapture=SEC   measured seconds (default 60)
  *   -GCBRunTag=NAME   name of the run report and CSV metadata tag (default "run")
  *   -GCBExit          quit when the run is finished
+ *   -GCBStopTraceBeforeExit  a diagnostic: stop an active trace one frame after BenchEnd, before quitting (the
+ *                     Phase 7 probe for traced runs that exit with 777003, 09)
  */
 UCLASS()
 class UGCBBenchmarkSubsystem : public UTickableWorldSubsystem
@@ -92,6 +94,7 @@ private:
 		double CaptureSeconds = 60.0;
 		FString RunTag = TEXT("run");
 		bool bExitWhenDone = false;
+		bool bStopTraceBeforeExit = false;
 	};
 
 	enum class ERunPhase : uint8

@@ -1,7 +1,10 @@
 """P04 GCBudget - functional checks over one recorded batch (offline: reads Benchmarks/Raw, starts nothing).
 
 Usage:
-    python -I check_batch.py <batch>        e.g. 2026-11-21_035628_s1e0b
+    python -I check_batch.py <batch> [--trend]        e.g. 2026-11-21_035628_s1e0b
+
+--trend also prints, per run, the drift over 60 s windows (3,600 frames): the median PhysicalUsedMB and
+GameThreadTime, and the UObject floor (the minimum, i.e. right after a purge). For long runs (09, Phase 7).
 
 For every run of the batch (priming included), from its CSV capture, run report and log:
   - cycle starts: one per GC request, exactly the report's gc_frames apart, on the same frames as the director's
@@ -101,7 +104,31 @@ def check_run(csv_path: str) -> list[str]:
     return failed
 
 
+def trend(csv_path: str, window_frames: int = 3600) -> None:
+    """Per-minute drift of a long run: memory, game-thread time and the post-cycle UObject floor (printed, not judged)."""
+    header, rows, _metadata, _finalised = csv_stats.load_capture(csv_path)
+    memory = csv_stats.per_frame(header, rows, "PhysicalUsedMB")
+    game_thread = csv_stats.per_frame(header, rows, "GameThreadTime")
+    objects = csv_stats.per_frame(header, rows, csv_stats.UOBJECTS)
+    windows = []
+    for start in range(0, len(rows) - window_frames + 1, window_frames):
+        def median(values: list[float | None]) -> float:
+            return csv_stats.percentile(sorted(v for v in values[start:start + window_frames] if v is not None), 50.0)
+        floor = min(v for v in objects[start:start + window_frames] if v is not None)
+        windows.append((median(memory), median(game_thread), floor))
+    if len(windows) < 2:
+        print(f"    trend: fewer than two {window_frames}-frame windows")
+        return
+    first, last = windows[0], windows[-1]
+    print(f"    trend over {len(windows)} windows of {window_frames} frames: PhysicalUsedMB median {first[0]:.1f} -> {last[0]:.1f} "
+          f"(range {min(w[0] for w in windows):.1f}-{max(w[0] for w in windows):.1f}); GameThreadTime median {first[1]:.3f} -> "
+          f"{last[1]:.3f} ms; UObject floor {first[2]:.0f} -> {last[2]:.0f} (range {min(w[2] for w in windows):.0f}-"
+          f"{max(w[2] for w in windows):.0f})")
+
+
 def main(argv: list[str]) -> int:
+    show_trend = "--trend" in argv
+    argv = [a for a in argv if a != "--trend"]
     if len(argv) != 1:
         print(__doc__)
         return 2
@@ -109,7 +136,12 @@ def main(argv: list[str]) -> int:
     if not captures:
         print(f"no captures for batch {argv[0]} in {RAW_DIR}")
         return 2
-    failures = [os.path.basename(path) for path in captures if check_run(path)]
+    failures = []
+    for path in captures:
+        if check_run(path):
+            failures.append(os.path.basename(path))
+        if show_trend:
+            trend(path)
     print("all runs pass" if not failures else f"FAILED runs: {failures}")
     return 0 if not failures else 1
 

@@ -293,3 +293,49 @@ Phase 6 changes no game code. It made the explanation consistent with the final 
 | P6-5 | Links | `python -I <portfolio>\tools\check_links.py .` | ✅ 0 problems |
 
 **Audit trail (Phase 6):** `check_citations.py` is new; a structured self-review checked its exit codes on a doc with a missing file and on one with shorthand citations, and that it reads nothing but engine files and the docs.
+
+## Phase 7 · Testing (2026-11-21)
+
+**Owner direction (via the coordinator):** finish with the data already recorded. One queue job builds and runs the automation tests. No new benchmarks, no long runs, no 777003 probe. The Phase 7 job queued earlier was cancelled before it ran.
+
+| Queue job | Steps | Outcome |
+|---|---|---|
+| `20261121_101742_fc0390` | `Tools\build.bat GCBudgetEditor Development`, `Tools\build.bat GCBudget Development`, `Tools\run_tests.bat GCBudget` | ✅ both targets "Result: Succeeded", **0 warnings**; "Found 11 automation tests based on 'GCBudget'", **11 of 11 `Result={Success}`**, "TEST COMPLETE. EXIT CODE: 0" |
+
+| Test | What it proves | What it does not prove |
+|---|---|---|
+| `GCBudget.Handles.*` (6, from S3) | Allocation, staleness after release, LIFO reuse with a new generation, reset, 1,000,000 random operations against a model | Anything about stores or GC |
+| `GCBudget.Handles.GenerationWrapsToOne` | Releasing at `MAX_int32` doesn't overflow; the generation wraps to 1, never 0; default and generation-0 handles stay invalid; **the documented limit holds**: after a full wrap, a first-life handle matches again | That 2³¹ real releases behave the same (the test hook sets the generation directly) |
+| `GCBudget.Handles.GrowShrinkRegrow` | Holes are refilled first (generation 2), then slots are appended (generation 1); no released handle becomes current again | Store-level growth during a run (the benchmark stores never grow mid-run) |
+| `GCBudget.Stores.StaleAfterExpiry` | For U0 (weak pointers), S1 and S0 (handles): every reference to a removed item is rejected, none resolves to its replacement, and re-pointed references resolve | U1 (clusters are not built in an editor test); behaviour across a real GC cycle (no GC runs inside the test) |
+| `GCBudget.Stores.RepopulateShrinkGrow` | Repopulating to 500 and then 2,500 items gives the same count and checksum as a fresh store of that size, with no probe errors | Memory being released (only state equality is checked) |
+| `GCBudget.Stores.ChecksumsAgree` | U0 = S1 = S0 checksums at 4,000 items after 1,200 frames, in the editor build | The packaged build (that is `09` S7-5) |
+
+**Not tested, as directed:** long (600 s) runs, the object-limit run (U0 at 1,000,000 items, GC every 60 s), the three expected rejections in a packaged run, and the 777003 probe. The probe's switch (`-GCBStopTraceBeforeExit`, `05` C8) is built but **was never run**, so 777003's cause stays **unknown**, with the evidence in S2. The object limit is covered only by the arithmetic behind the director's limits (`05` C8) and by S4's 100k `-VERIFYGC` run (peak 137,929 objects).
+
+**Incident:** during Phase 7, a 20 s offline parse of 33 baseline captures ran while another project's baseline batch held the queue (about 08:59:05–08:59:25 local; that project's batch `2026-11-21_085156_S3baseline`). The coordinator was told. `07` §1 records it.
+
+## Results: the success criteria
+
+**Not the protocol's final batches.** Phase 8's full matrix (balanced runs of all six configurations at all five N) was **not run**, by the owner's direction. Every number below comes from the recorded check and baseline batches. A verdict resting on S0 data comes from a 20 s, 2-run check batch and is marked *indicative*.
+
+| SC | Target | Result | Evidence (batch) |
+|---|---|---|---|
+| SC1 | S0 at 100k: cycle-pause p95 ≤ E0's + 0.25 ms | ✅ **met, indicative**: S0 1.408 [0.991–1.824] ms against E0 1.916 [0.968–2.865] ms | `2026-11-21_082841_s7check` (20 s captures, 2 runs: a check batch, not the protocol's) |
+| SC2 | S0's worst GC frame at 100k below the best of U0, U1 and U2 | ✅ **met, indicative**: S0 GC-frame max 1.836 [1.142–2.530] ms against U1's 3.339, U0's 4.874 and U2's 5.139 ms (the best is U1). The capture lengths differ (S0: 20 s, 2 runs; U: 60 s, 4 runs), so the ranges are not a like-for-like non-overlap test | `…_s7check`; `2026-11-21_063108_s6batchA` |
+| SC3 | S0 at 100k: spikes/min ≤ E0's, 0 hitches/min | ✅ met: 0.00 spikes and 0.00 hitches per minute (E0: 0.00 / 0.00) | `…_s7check` |
+| SC4 | S0 adds ≤ 32 UObjects over E0; U0 adds ≥ N | ✅ met: S0 35,537 vs E0 35,536 (+1, the store); U0 at 100k: post-cycle floor 135,647 (+100,111) | `…_s7check` |
+| SC5 | S0 bytes per item ≤ 50% of U0's | **not measured**: the working set (`PhysicalUsedMB`) differs between runs by more than the configurations differ at these N. What is measured: S0's element is 20 bytes (logged), a U0 item is a full UObject plus its page slot | `…_s7check`; `09` S7-7 |
+| SC6 | S0 update ≤ U0's; S0 lookup ≤ 1.5 × U0's | ✅ met: update 2.86 vs 8.46 ns/item; lookup 33.00 vs 41.05 ns (0.80 ×) at 100k | `…_s7check` |
+| SC7 | 0 lookup errors; identical checksums across configurations | ✅ met: 0 probe errors in every run of every batch; U0 = U1 = U2 = S1 = S0 = 0x83C178D5 at 10k (1,501 frames), and equal across every configuration present at every N in every batch | `09` S4-2, S5-5, S6, S7-5 |
+| SC8 | U0, S1 and S0 at all five N, ≥ 3 runs each; H1's slope | ❌ **not met**: U0 and S1 at 1k–100k with 2 runs each; S0 only at 10k and 100k (check batch); no slope fitted | `2026-11-21_064925_s6batchB` |
+
+**The headline finding (H4):** at 100,000 items, U1's clusters lower the GC pause (p95 3.10 ms against U0's 4.46 ms), but rebuilding the changed pages before each cycle stalls the game thread for **about 1.4 s per cycle**. The per-run worst request frame has a median of 1,473.8 ms, against U0's 7.6 ms. In this churning workload, clustering trades a smaller pause for a far bigger hitch. U1 is the baseline as designed in `03`; it was not tuned (`11`).
+
+**What stays unverified** (each was planned as a Phase 8 Insights drill-down, which was not run):
+1. the cause of exit 777003 on traced runs;
+2. the occasional 2.6–3.2 ms cycles in every configuration, E0 included;
+3. why U1's per-page rebuild cost grows with N (about 1.5 ms per page at 10k, about 14 ms at 100k);
+4. why U2 doesn't lower the pause at 100k.
+
+**Not done:** the Shipping cross-check, the H1 slope fit and the demo video.

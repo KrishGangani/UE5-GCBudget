@@ -6,8 +6,8 @@
 |---|---|---|
 | A | Project, build rules and config | `.uproject`, two `Target.cs`, two `Build.cs`, two module `.cpp`, `.uplugin`, three config `.ini` |
 | B | The plugin `GCBudgetCore` | `GCBudgetTelemetrySubsystem.h/.cpp`, `GCBudgetHandle.h/.cpp`, `Private/Tests/GCBudgetHandleTests.cpp` |
-| C | The game module `GCBudget` | `GCBItemDef.h`, `GCBWorkload.h/.cpp`, `GCBItemObject.h`, `GCBItemStore.h/.cpp`, `GCBObjectItemStore.h/.cpp`, `GCBStructItemStores.h/.cpp`, `GCBBenchmarkSubsystem.h/.cpp` |
-| D | The tools | four `.bat` scripts, `cpu_affinity.py`, `csv_stats.py`, `run_bench.py`, `check_batch.py`, `validate_bracket.py`, `check_citations.py` |
+| C | The game module `GCBudget` | `GCBItemDef.h`, `GCBWorkload.h/.cpp`, `GCBItemObject.h`, `GCBItemStore.h/.cpp`, `GCBObjectItemStore.h/.cpp`, `GCBStructItemStores.h/.cpp`, `GCBBenchmarkSubsystem.h/.cpp`, `Private/Tests/GCBStoreTests.cpp` |
+| D | The tools | four `.bat` scripts, `cpu_affinity.py`, `csv_stats.py`, `run_bench.py`, `check_batch.py`, `validate_bracket.py`, `check_citations.py`, `make_charts.py` |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -235,6 +235,7 @@ The build log line `[Adaptive Build] Excluded from GCBudgetCore unity file: GCBu
 | `Resolve(Handle)` | Index or `INDEX_NONE`: the one call a lookup needs |
 | `IsSlotAlive`, `GetHandle`, `Num`, `NumSlots` | Small read-only queries. `GetHandle` returns the *current* handle of a live slot, which is how a store hands out a reference |
 | `Reserve`, `Reset` (`UE_API`) | Pre-sizing for a known population; forgetting everything |
+| `SetGenerationForTesting(Index, Generation)` (`#if WITH_DEV_AUTOMATION_TESTS`) | *Phase 7.* A test hook that sets one slot's generation, so the wrap-around test reaches `MAX_int32` without 2³¹ releases. It exists only where development tests are compiled, so no Test or Shipping build can call it (`04` §19) |
 | Private members | `TArray<int32> Generations` (per slot), `TArray<int32> FreeSlots` (LIFO stack), `TBitArray<> Alive` (one bit per slot), `int32 NumAlive` |
 | The wrap-around limit in the class comment | After 2³¹ − 1 releases of one slot the generation returns to 1, and a very old handle could match again. Stated, not hidden (02 §12) |
 
@@ -259,6 +260,8 @@ The build log line `[Adaptive Build] Excluded from GCBudgetCore unity file: GCBu
 | `GCBudget.Handles.LifoReuseNewGeneration` | Reuse is LIFO, a reused slot has generation 2, and the old handle stays stale |
 | `GCBudget.Handles.Reset` | Everything is forgotten; allocation restarts at slot 0 |
 | `GCBudget.Handles.RandomAgainstModel` | 1,000,000 seeded random operations (45% allocate, 45% release, 10% check). After each: the live count matches the model; sampled live handles resolve to themselves; sampled released handles are stale. Expected mismatches: **0** |
+| `GCBudget.Handles.GenerationWrapsToOne` *(Phase 7)* | With the hook: a release at `MAX_int32` doesn't overflow; the slot comes back at generation **1**, never 0; the old handle is stale; default and generation-0 handles stay invalid. It also **asserts the documented limit**: after a full wrap, a handle from the slot's first life matches again |
+| `GCBudget.Handles.GrowShrinkRegrow` *(Phase 7)* | Grow to 1,000, release every other slot (holes), grow by 700: the 500 holes are refilled first at generation 2, then 200 slots are appended at generation 1. No handle from before the shrink is current again |
 
 - `#if WITH_DEV_AUTOMATION_TESTS` compiles the tests only where development tests exist: every configuration except Test and Shipping (`Programs/UnrealBuildTool/Configuration/UEBuildTarget.cs:6315, 6331`).
 - `IMPLEMENT_SIMPLE_AUTOMATION_TEST(Class, "Pretty.Name", Flags)` declares a test class; its `RunTest` is the body (`Runtime/Core/Public/Misc/AutomationTest.h:4297`).
@@ -356,6 +359,7 @@ The build log line `[Adaptive Build] Excluded from GCBudgetCore unity file: GCBu
 | `UCLASS()` + `UTickableWorldSubsystem` | One director per game world that ticks every frame (`Runtime/Engine/Public/Subsystems/WorldSubsystem.h:80`). It ticks inside `FTickableGameObject::TickObjects`, before the engine's GC call in the same frame (`LevelTick.cpp:1821, 1970`). No `MinimalAPI`: nothing outside this module uses it |
 | `OnWorldBeginPlay`, `Deinitialize`, `Tick`, `GetStatId`, `DoesSupportWorldType` (protected) | The engine's entry points (C8). Game and PIE worlds only |
 | `struct FRunSettings` | Every command-line value, read once into plain fields. Defaults match `02` §7: GC every 120 frames, 1,000 lookups per frame, 10 s warm-up, 60 s capture |
+| `bStopTraceBeforeExit` (`-GCBStopTraceBeforeExit`) | *Phase 7.* A diagnostic switch for the exit-777003 probe (C8, `09`). Built and compiled, **never run** (the probe was cancelled) |
 | `enum class ERunPhase` | `Idle` → `WarmUp` → `Capture` → `Done`. A rejected run stays `Idle` |
 | `struct FRunTotals` | Run totals (warm-up included) for the report: expiries, the probe's lookups, hits, stale references, errors and sink, U1's cluster rebuilds, GC requests, populate time. 64-bit counters, so a long run can't wrap them |
 | The private helpers | `ReadRunSettings`, `ParseConfig`, `ValidateRunSettings`, `ApplyGCSettings`, `SetGCVariable`, `CreateWorkload`, `UpdateWorkload`, `UpdateGCCadence`, `WriteRunReport`: one responsibility each (C8) |
@@ -387,9 +391,23 @@ The build log line `[Adaptive Build] Excluded from GCBudgetCore unity file: GCBu
 | `UpdateWorkload(DeltaTime)` | Ticks = round(Δt × 60), at least 1: exactly 1 in fixed-step runs. Times `Update` and the probe separately and publishes `Items`, `Expired`, `UpdateMs`, `UpdateNsPerItem` (M6), `ProbeNsPerLookup` (M7) and `ProbeErrors` |
 | `UpdateGCCadence` | `FrameIndex % GCFrames == 0` gives a request every 120 frames. First `Store->PrepareForGC()`, timed as `ClusterMs` (U1's rebuild; nothing elsewhere), so U1's maintenance lands in the cycle's own frame and shows as its own column. Then `GEngine->ForceGarbageCollection(false)`, which only moves the engine's timer (`UnrealEngine.cpp:2136–2139`): the cycle starts later in the **same** frame, inside `ConditionalCollectGarbage`, through the normal branch (:2282–2287), or after a still-running purge finishes. `GCTrigger` marks the request frame |
 | `Tick` | Counts frames; runs the workload and the cadence in warm-up and capture; moves through the timeline. `CSV_EVENT(GCBWorkload, TEXT("BenchStart"))` is the capture's start event: `-csvStartOnEvent=BenchStart` matches the event name whatever its category (`Runtime/Core/Private/ProfilingDebugging/CsvProfiler.cpp:5081`) |
+| The trace probe, in `Tick` *(Phase 7)* | One frame after `BenchEnd`, right after the report, if `-GCBStopTraceBeforeExit` was given and a trace is active (`FTraceAuxiliary::IsConnected()`), it calls `FTraceAuxiliary::Stop()` and logs "Trace stopped before exit: yes/no". The exit request follows two frames later, so the trace ends while the engine is fully running instead of during shutdown (`06` §28) |
 | `WriteRunReport` | A JSON file written one frame after `BenchEnd` (outside the capture): the settings (strings escaped), the frame counters, the populate time, the GC requests, the telemetry's cycle counts inside and outside the bracket, U1's cluster rebuilds, expiries, the probe totals and the end-of-run **checksum**. 23 format specifiers for 23 arguments; `%lld` for `int64`, which is `long long` on this platform |
 
 **Why the director owns the cadence instead of setting the engine timer to 2 s:** the timer field is private (`Runtime/Engine/Classes/Engine/Engine.h:2006–2012`), and U1 must do work in the frame *before* a cycle. Only the code that triggers the cycle knows which frame that is (`02` §6).
+
+### C9. `Private/Tests/GCBStoreTests.cpp` *(Phase 7)*
+
+Store-level automation tests, run with the handle tests by `Tools\run_tests.bat` (filter `GCBudget`). They create the stores in the transient package, exactly as the director would: U0 (`UGCBObjectItemStore`), S1 and S0. U1's clusters are checked in packaged `-VERIFYGC` runs instead (`09` S4-7), because building clusters from an editor test would test the editor, not the game.
+
+| Test | What it proves |
+|---|---|
+| `GCBudget.Stores.StaleAfterExpiry` | With 1,000 items, every fresh probe reference resolves. After one update longer than the longest lifetime (every item expires exactly once and is replaced), **every reference to a removed item is rejected**: weak pointers fail at once (`MarkAsGarbage`, no GC needed), handles fail on their generation. None resolves to the replacement, and there are no errors. After the pool is re-pointed (125 frames × 8), every reference resolves again |
+| `GCBudget.Stores.RepopulateShrinkGrow` | A store populated with 3,000 items and run 300 frames, then populated with 500 (shrink) and then 2,500 (grow), has the same `Num()` and the **same checksum** as a fresh store of that size (after 600 more frames for the grown case), with no probe errors. This is the reset path the S3–S5 review fixed (`09` S4, S5) |
+| `GCBudget.Stores.ChecksumsAgree` | 4,000 items, 1,200 frames: U0, S1 and S0 give one checksum. SC7 at unit level, without a packaged build |
+
+- `TestEqual` has no `uint32` overload (`Runtime/Core/Public/Misc/AutomationTest.h:1985–1987`), so checksums are compared as `int64`. The per-store messages are built with `*FString::Printf(…)`, which picks the `const TCHAR*` overloads.
+- `Run(Store, Frames)` advances a store the way the director does: one tick, then the probe refresh, per frame.
 
 ## Part D · The tools (`Tools\`)
 
@@ -502,3 +520,9 @@ Adapted from the reference project's runner. Unchanged parts: the batch name, in
 | Shorthand citations | A `:lines` after a full citation refers to the last file named in the same section. If it falls outside that file, the citation is listed for a person to check, not failed |
 | The content check | At least one distinctive word from the same table row or line (an identifier, a CamelCase or code word of six or more letters, not a path component or a common word) must appear in the cited lines ±3. It triages; it can't prove a citation right. Every citation it lists was checked by hand (`09`, Phase 6) |
 | Exit code | 1 if any full citation doesn't resolve (file missing, lines beyond the end); the review list doesn't change it |
+
+### D8. `make_charts.py`
+
+Draws the README's two charts (`Media/gc_pause_vs_items.png`, `Media/u1_tradeoff.png`) with matplotlib. The numbers are typed in from the batch summaries and `check_batch.py`'s output, with each batch named in a comment, so the charts show recorded data only.
+- `matplotlib.use("Agg")` renders without a display.
+- The x axis is logarithmic for N; the stall panel is logarithmic because U1's 1,474 ms dwarfs the others.

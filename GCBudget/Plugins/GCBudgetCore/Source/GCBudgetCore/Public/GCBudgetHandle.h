@@ -102,6 +102,14 @@ public:
 	/** Forgets every slot. Handles issued before are invalid afterwards (no slot exists for them). */
 	UE_API void Reset();
 
+#if WITH_DEV_AUTOMATION_TESTS
+	/**
+	 * Tests only: sets a slot's generation, so the wrap-around can be tested without 2^31 releases of one slot.
+	 * Compiled only where development tests are (not in Test or Shipping builds).
+	 */
+	void SetGenerationForTesting(int32 Index, int32 InGeneration) { Generations[Index] = InGeneration; }
+#endif
+
 private:
 	/** Per slot: the generation a current handle must carry. Starts at 1; incremented on Release. */
 	TArray<int32> Generations;

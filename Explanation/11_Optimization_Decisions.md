@@ -1,5 +1,7 @@
 # 11 · Optimization Decisions: GCBudget
 
-**Status:** not written yet. Filled in **Phase 8**, from measurements only.
+**No optimisation was made from measurements.** Phase 8, where data-driven changes would have been made, was not run (by the owner's direction, `09`).
 
-**Will contain:** every optimisation considered. For each: the measurement that motivated it, the change, the before/after numbers with their batch names, and what was rejected. The design decisions made *before* measuring are in [02_System_Architecture.md](02_System_Architecture.md) §7 and §13, not here.
+Two decisions are recorded so nobody mistakes them for omissions:
+- **U1 was not tuned.** Its ~1.4 s rebuild stall at 100k (`09` S6) could be reduced, for example with larger pages or by rebuilding only some clusters per cycle. But U1 is the baseline as designed in `03`, and tuning a baseline to look better would bias the comparison.
+- **Fixes made during implementation were correctness fixes, not optimisations.** They are listed in `09`'s audit trails (for example U1's `AddToCluster` and the hitch rule).

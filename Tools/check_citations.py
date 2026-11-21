@@ -78,6 +78,9 @@ SHORT.update({
     "AutomationTest.h": R + r"\Core\Public\Misc\AutomationTest.h",
     "AssertionMacros.h": R + r"\Core\Public\Misc\AssertionMacros.h",
     "WorldSubsystem.h": R + r"\Engine\Public\Subsystems\WorldSubsystem.h",
+    "TraceAuxiliary.h": R + r"\Core\Public\ProfilingDebugging\TraceAuxiliary.h",
+    "FastReferenceCollector.h": R + r"\CoreUObject\Public\UObject\FastReferenceCollector.h",
+    "AssertionMacros.cpp": R + r"\Core\Private\Misc\AssertionMacros.cpp",
 })
 
 CITE = re.compile(r"`([A-Za-z0-9_./\-]+\.(?:cpp|h|ini|cs|uplugin|uproject|inl))(:[0-9][0-9, –/-]*)`")

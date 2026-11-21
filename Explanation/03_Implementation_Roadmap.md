@@ -10,7 +10,7 @@
 
 ---
 
-**Progress (2026-11-21):** Phases 1–3 ✅. Phase 4 (F1–F3) ✅ (`09`: 0 errors, 0 warnings; packaged smoke run on the RTX GPU). Phase 5 ✅, S1–S7 (`09`: 0 warnings in every step; the E0 cadence and counters checked; the bracket matches Insights within 0.008 ms per cycle; the six handle tests pass; U0 = U1 = U2 = S1 = S0 checksums, 0 probe errors, no `-VERIFYGC` errors; the baselines recorded before S0 existed). Phase 6 ✅ (`05` consolidated into one pass over the final code, every citation re-checked, `08` written). Phase 7 (testing) is next.
+**Progress (2026-11-21):** Phases 1–3 ✅. Phase 4 (F1–F3) ✅ (`09`: 0 errors, 0 warnings; packaged smoke run on the RTX GPU). Phase 5 ✅, S1–S7 (`09`: 0 warnings in every step; the E0 cadence and counters checked; the bracket matches Insights within 0.008 ms per cycle; the six handle tests pass; U0 = U1 = U2 = S1 = S0 checksums, 0 probe errors, no `-VERIFYGC` errors; the baselines recorded before S0 existed). Phase 6 ✅ (`05` consolidated into one pass over the final code, every citation re-checked, `08` written). Phase 7: one build-and-test job, 11 of 11 tests (`09`). Phases 8–10 were cut short by the owner's direction: results from the recorded batches, README charts, `10`–`12` written; not run: Phase 8's matrix and drill-downs, the Shipping cross-check, long runs, the video.
 
 ## Phase 4: Foundation (no gameplay code yet)
 

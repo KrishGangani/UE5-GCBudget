@@ -17,6 +17,7 @@
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "ProfilingDebugging/CsvProfiler.h"
+#include "ProfilingDebugging/TraceAuxiliary.h"
 #include "Stats/Stats.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(GCBBenchmarkSubsystem)
@@ -146,6 +147,7 @@ UGCBBenchmarkSubsystem::FRunSettings UGCBBenchmarkSubsystem::ReadRunSettings()
 	FParse::Value(CommandLine, TEXT("GCBCapture="), Read.CaptureSeconds);
 	FParse::Value(CommandLine, TEXT("GCBRunTag="), Read.RunTag);
 	Read.bExitWhenDone = FParse::Param(CommandLine, TEXT("GCBExit"));
+	Read.bStopTraceBeforeExit = FParse::Param(CommandLine, TEXT("GCBStopTraceBeforeExit"));
 	Read.Config = ParseConfig(Read.ConfigName);
 	return Read;
 }
@@ -421,6 +423,13 @@ void UGCBBenchmarkSubsystem::Tick(float DeltaTime)
 		if (FramesSinceEnd == 1)
 		{
 			WriteRunReport();
+			if (Settings.bStopTraceBeforeExit && FTraceAuxiliary::IsConnected())
+			{
+				// The exit-777003 probe (09, Phase 7): end the trace while the engine is fully up, two frames before
+				// the exit request, instead of leaving it to engine shutdown (TraceAuxiliary.h:230).
+				const bool bStopped = FTraceAuxiliary::Stop();
+				UE_LOG(LogGCBBench, Display, TEXT("Trace stopped before exit: %s"), bStopped ? TEXT("yes") : TEXT("no"));
+			}
 		}
 		if (Settings.bExitWhenDone && FramesSinceEnd >= GCBBench::ExitDelayFrames)
 		{

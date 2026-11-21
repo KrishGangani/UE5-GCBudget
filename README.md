@@ -4,11 +4,11 @@
 
 **Domain:** Memory & resource optimisation · UObject lifecycle · **Difficulty:** ★★★½☆ · **Engine:** UE 5.8.4
 
-> **Status: in progress. There are no results yet.** Sections marked *(pending)* are filled in only from real measurements, in the phase named. The success criteria are **targets fixed before any code exists, not results**. The ten portfolio projects are developed in parallel, and every Unreal Engine build and benchmark runs one at a time on the same machine, so measurements stay clean.
+> **Status: complete (by the owner's direction, without the final protocol batches).** The results below come from the recorded baseline and check batches (`Explanation/09`); anything not measured says so.
 
 | Phase | 1 Problem | 2 Research | 3 Architecture | 4 Foundation | 5 Implementation | 6 Explanation | 7 Testing | 8 Profiling | 9 Review | 10 Portfolio |
 |---|---|---|---|---|---|---|---|---|---|---|
-| State | ✓ | ✓ | ✓ final | ✓ | ✓ (S1–S7) | ✓ | next | — | — | — |
+| State | ✓ | ✓ | ✓ final | ✓ | ✓ (S1–S7) | ✓ | ✓ (tests only) | — | — | — |
 
 ---
 
@@ -72,15 +72,38 @@ Judged at 100,000 items; 10,000 is always reported beside it. The full table is 
 
 ## Before / after comparison
 
-*(pending, Phase 8).* Six configurations on one fixed workload: E0 (no items), U0, U1, U2, S1, S0.
+At 100,000 items, packaged Development, fixed 60 Hz step, P-cores pinned. Cycle-pause p95 is the median across runs.
+
+| Configuration | GC pause p95 | UObjects | Update ns/item | Lookup ns | Worst request frame |
+|---|---|---|---|---|---|
+| U0: one UObject per item | 4.46 ms | 136,723 | 10.1 | 40.7 | 7.6 ms |
+| U1: U0 + a GC cluster per page | 3.10 ms | 136,728 | 10.0 | 39.8 | **≈ 1,474 ms** (cluster rebuild) |
+| U2: U0 + incremental reachability (2 ms) | 4.86 ms | 136,742 | 10.0 | 40.7 | 7.5 ms |
+| S1: structs, each holding a `TObjectPtr` | 1.98 ms | 35,534 | 2.6 | 32.0 | 3.9 ms |
+| **S0: structs, definition by index** | **1.41 ms** | **35,537** | 2.9 | 33.0 | — |
+| E0: no items | 1.92 ms* | 35,536 | — | — | — |
+
+U rows and S1 come from Batch A (`2026-11-21_063108_s6batchA`: 60 s captures, 4 runs). S0 and E0 come from the S7 check batch (`2026-11-21_082841_s7check`: 20 s captures, 2 runs, so indicative). \*With 10 cycles per capture, E0's p95 is set by occasional slow cycles (about 2.6–2.9 ms, cause unverified). Its 60 s value is 1.03 ms (Batch B).
+
+**Headline:** U1's clustering lowers the GC pause but stalls the game thread about **1.4 s per cycle** at 100k, because every page changes between cycles and must be rebuilt. S0 keeps the GC pause at the engine's own floor with one extra UObject, whatever N is.
+
+![U1 trade-off](Media/u1_tradeoff.png)
 
 ## Benchmark results
 
-*(pending, Phase 8).* GC pause and per-frame GC time at N = 0 / 1k / 10k / 30k / 100k, UObject count, resident MB, spikes per minute, ns per item. Raw data in [Benchmarks/](Benchmarks/README.md).
+![GC pause vs item count](Media/gc_pause_vs_items.png)
+
+- **The pause grows with object count** (U0: about 1.0 ms at 1k to 4.0 ms at 100k, Batch B). S1, which keeps one reference per element but almost no UObjects, grows far less (1.9 ms at 100k). S0 at 100k (1.41 ms) sits at the E0 floor.
+- **Correctness:** every configuration computes the same work. The end-of-run checksums are identical across U0, U1, U2, S1 and S0, and the lookup probe made 0 errors in every run.
+- **The measurement is validated:** per cycle, our GC bracket matches Insights' `ConditionalCollectGarbage` timer within 0.008 ms.
+- **Success criteria:** SC1–SC4, SC6 and SC7 met (SC1 and SC2 indicative); SC5 (memory) not measured; SC8 (the full curve with ≥ 3 runs) not met. Full table: [09](Explanation/09_Testing_And_Benchmarks.md#results-the-success-criteria).
+- **Not run** (by the owner's direction): Phase 8's balanced matrix, the Insights drill-downs, the Shipping cross-check, long runs.
+
+Raw data: [Benchmarks/](Benchmarks/README.md) (manifests and summaries in git; raw captures are attached to the GitHub release).
 
 ## Recorded demonstration
 
-*(pending, Phase 10).* U0 vs S0 at 100,000 items, with a live UObject count and a GC timeline. Saved in `Media/`.
+Not recorded (by the owner's direction).
 
 ## Why studios care
 
@@ -115,7 +138,7 @@ Build, package and smoke scripts are in [Tools/](Tools/). Every Unreal job on th
 | [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | Fundamentals, line-by-line code, APIs and macros, common mistakes. Current to the end of Phase 5; consolidated and re-checked in Phase 6 |
 | [09](Explanation/09_Testing_And_Benchmarks.md) | Every check so far, with its exact command and result |
 | [08](Explanation/08_Debugging_And_Profiling.md) | Debugging and profiling: the project's instruments, the CSV profiler, Insights, GC commands and logs, each checked in the engine source |
-| [10](Explanation/10_Interview_Questions.md) · [11](Explanation/11_Optimization_Decisions.md) · [12](Explanation/12_Future_Scalability.md) | Filled in during Phases 8–10 |
+| [10](Explanation/10_Interview_Questions.md) · [11](Explanation/11_Optimization_Decisions.md) · [12](Explanation/12_Future_Scalability.md) | Interview questions; optimisation decisions (none made: no Phase 8); future scalability |
 | [Phase2_Raw_Notes/](Explanation/Phase2_Raw_Notes/README.md) | The audit trail behind `01b`: every quote and source line |
 | [Research/](Explanation/Research/) | The portfolio-wide research this project draws on |
 

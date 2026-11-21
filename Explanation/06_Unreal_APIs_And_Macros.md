@@ -414,3 +414,16 @@
 6. **Common mistakes:** replacing a `TObjectPtr` with a raw pointer "for speed", which leaves a dangling pointer once the object is collected. S0 stores an **index** into a table the GC still sees through the director's and the store's `UPROPERTY` arrays.
 7. **Example:** `USTRUCT() struct FNoRefs { GENERATED_BODY() UPROPERTY() int32 DefIndex = 0; };`: an array of these costs the GC nothing per element.
 8. **Here:** `FGCBItemData` (S0) against `FGCBItemDataRef` (S1).
+
+## API added in Phase 7
+
+## 28. `FTraceAuxiliary::Stop()` / `IsConnected()`
+
+1. **What:** the C++ side of the trace system's control (`Runtime/Core/Public/ProfilingDebugging/TraceAuxiliary.h:230, 330`); the console command `Trace.Stop` does the same (`Runtime/Core/Private/ProfilingDebugging/TraceAuxiliary.cpp:1856`).
+2. **Why:** to end a trace at a chosen moment instead of leaving it to engine shutdown.
+3. **How:** `IsConnected()` says whether trace data is going to a sink, "network, file or custom relay" (`TraceAuxiliary.h:327–330`). `Stop()` closes the connection and returns false if there was none (`:225–230`).
+4. **When:** to close a trace file cleanly before quitting, or to trace only part of a run.
+5. **When not:** in measured runs. Tracing is off there anyway (`-traceautostart=0`).
+6. **Common mistakes:** treating `false` from `Stop()` as an error. It only means no trace was connected (`TraceAuxiliary.h:225–230`), which is why the director asks `IsConnected()` first and logs the result.
+7. **Example:** `if (FTraceAuxiliary::IsConnected()) { FTraceAuxiliary::Stop(); }`
+8. **Here:** the director's `-GCBStopTraceBeforeExit`, the probe for exit 777003 (`05` C8; `09` Phase 7).
