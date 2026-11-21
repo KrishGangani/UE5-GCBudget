@@ -2,7 +2,7 @@
 
 **Rule:** only APIs and macros the project **actually uses** are explained, each in the 8-point format: (1) what it is, (2) why it exists, (3) how it works, (4) when to use it, (5) when not to, (6) common mistakes, (7) a small example, (8) how it applies here. Engine facts cite UE 5.8.4 `File:line`, relative to `Engine/Source/` unless stated.
 
-**Current to:** Phase 5 step S4. Later steps add their APIs in the step that first uses each.
+**Current to:** Phase 5 step S5. Later steps add their APIs in the step that first uses each.
 
 ---
 
@@ -378,3 +378,16 @@
 6. **Common mistakes:** dropping `UPROPERTY` and keeping a raw pointer, which the GC doesn't see.
 7. **Example:** `if (const UMyStore* S = Cast<UMyStore>(Store.Get())) { … }`
 8. **Here:** the director's `Definitions` and `Store`; reading U1's cluster count for the run report.
+
+## API added in step S5
+
+## 26. `check(Condition)`
+
+1. **What:** Unreal's assertion macro (`Runtime/Core/Public/Misc/AssertionMacros.h:229`).
+2. **Why:** to state an assumption that must hold, and stop at once (with a call stack) if it doesn't.
+3. **How:** `DO_CHECK` is 1 in Debug and Development and `USE_CHECKS_IN_SHIPPING` (0 by default) in Test and Shipping (`Runtime/Core/Public/Misc/Build.h:206, 246, 274, 302, 330`). With checks on, a false condition logs the expression and the location, then crashes. With them off, `check(expr)` becomes `{ CA_ASSUME(expr); }`, a hint for static analysis: the expression is never evaluated (`AssertionMacros.h:319`).
+4. **When:** internal invariants that a bug, not the user, would break.
+5. **When not:** for anything that can legitimately fail at run time (bad input, missing files): log an error and recover instead. And never with side effects inside, because they vanish in Test and Shipping.
+6. **Common mistakes:** `check(DoSomething())`, whose call disappears in Test and Shipping.
+7. **Example:** `check(Handle.Index == Lane);`
+8. **Here:** the struct stores' "lane = slot" invariant, after populating and after every LIFO reuse.

@@ -9,9 +9,7 @@ public class GCBudget : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine" });
-
-		// GCBudgetCore is private for now: no public header of this module includes a plugin header yet.
-		PrivateDependencyModuleNames.AddRange(new string[] { "GCBudgetCore" });
+		// GCBudgetCore is public: a public header (GCBStructItemStores.h) includes its GCBudgetHandle.h.
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "GCBudgetCore" });
 	}
 }

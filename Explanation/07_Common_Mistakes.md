@@ -1,6 +1,6 @@
 # 07 · Common Mistakes: GCBudget
 
-**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S4. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
+**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S5. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
 
 ---
 
@@ -71,3 +71,10 @@
 | Strong references in the lookup probe | A `TObjectPtr` keeps the expired object alive, so the GC can't collect it | Garbage that never goes away; a growing UObject count | The probe uses `TWeakObjectPtr`, not as a `UPROPERTY` (`05` E5) |
 | A long GC interval with a million UObjects | Garbage builds up between cycles (1% of the items per second); past 2,097,152 objects the cooked game stops with a fatal error | "Maximum number of UObjects exceeded" | *(Found in review.)* `-GCBGCFrames` is capped at 3,600 and `-GCBItems` at 1,000,000 (`05` E6) |
 | A function-level `static` as a "warn once" flag | It lives for the whole process, so later runs in the same editor session stay silent | A second PIE run with the same problem logs nothing | *(Found in review.)* The flag is a member of the store (`05` E5) |
+
+## 6. The struct store with references (S5)
+
+| Mistake | Why it is wrong | How to spot it | Prevention in this project |
+|---|---|---|---|
+| Assuming a struct array is invisible to the GC | If the element holds a `TObjectPtr`, the GC walks every element of a `UPROPERTY` array (`GarbageCollection.cpp:6874–6876`) | GC time that grows with N even though the UObject count doesn't | That is configuration S1's purpose: it keeps one reference per element on purpose, so the measurement separates objects from references (`05` F1) |
+| A public header that includes a header of a private dependency | By Epic's definition a private dependency is one "nothing in our public include files depend on" (`Programs/UnrealBuildTool/Configuration/Rules/ModuleRules.cs:1256–1270`). It compiles in this module, but a module that includes the header would not get the dependency's include path **[inferred]** | An include error in a module that only includes our header | The plugin became a public dependency in the step whose public header first includes it (`05` F3) |

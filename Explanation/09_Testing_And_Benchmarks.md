@@ -190,3 +190,23 @@ Built and checked in job 9 with S3 (above). Functional checks use 5 s of warm-up
    - The run tag's JSON escaping (S1 code): fixed in S1 (`09` S1).
    - A comment in `GCBudget.Build.cs` would become wrong once S5's public header includes a plugin header: handled in S5.
 2. **Clean-up pass** (structured self-review): `Populate` didn't restart the probe cursors, so a second `Populate` with fewer lanes could leave one past the end of the new pool; both are reset now (`05` E4). The probe references are reserved once; the runner builds the checksum groups once per batch.
+
+### S5 · The struct store that still holds references, configuration S1 (2026-11-21)
+
+S5 was built and checked in the same queue job as the S6 baselines (S6 adds no code).
+
+| Queue job | What changed before it | Outcome |
+|---|---|---|
+| 10 · `20261121_041046_7c3358` | S5 staged, not yet in the tree; queued early with a gate | ❌ failed in 0.0 s at the same `>nul` gate as job 8 (`07` §1). Nothing was built |
+| 11 · `20261121_053330_44cef8` | S5 in the tree; the gate became `type <file>` | ✅ every step, 1,812 s. **The committed state of S5**, and the S6 baselines |
+
+| # | Check | Command | Result (job 11) |
+|---|---|---|---|
+| S5-1 | Editor target builds | `Tools\build.bat GCBudgetEditor Development` | ✅ 14 actions, 12.23 s, **0 errors, 0 warnings** |
+| S5-2 | Game target builds | `Tools\build.bat GCBudget Development` | ✅ 10 actions, 16.32 s, **0 errors, 0 warnings** |
+| S5-3 | The handle tests still pass | `Tools\run_tests.bat GCBudget` | ✅ 6 of 6 `Result={Success}`, "TEST COMPLETE. EXIT CODE: 0" |
+| S5-4 | Package | `Tools\package.bat Development` | ✅ BUILD SUCCESSFUL, BuildCookRun 58.63 s, cook "0 error(s), 0 warning(s)" |
+| S5-5 | S1's checksum equals U0's | `python -I -u Tools\run_bench.py --configs U0,S1 --items 10000 --runs 2 --warmup 5 --capture 20 --label s5check` | ✅ all runs exit 0; **S1 0x83C178D5 = U0 0x83C178D5** (seed 1, 1,501 frames), the same value as S4's U runs. The 60 s baselines (S6) also agree at every N |
+| S5-6 | UObject count = E0 + store; probe errors 0 | `python -I Tools\check_batch.py 2026-11-21_062953_s5check`, and the run reports | ✅ "all runs pass". S1 at 10,000: **35,534, constant**: E0 of this build (35,533, S6 Batch B) + 1 store. Probe: 1,500,000 lookups, 0 errors. E0 rose by 5 from S4 (35,528), which matches two new classes × (class object + default object) plus S1's struct type **[inferred]** |
+
+**Audit trail (S5 code):** the S3–S5 review (S4 section) found two things in the staged S5 code: a second `Populate` kept the old probe handles (now reset, `05` F1), and the `Build.cs` comment that S5 would make wrong (the plugin is now a public dependency, `05` F3). A structured self-review of the director's S5 change found nothing to change.

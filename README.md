@@ -8,7 +8,7 @@
 
 | Phase | 1 Problem | 2 Research | 3 Architecture | 4 Foundation | 5 Implementation | 6 Explanation | 7 Testing | 8 Profiling | 9 Review | 10 Portfolio |
 |---|---|---|---|---|---|---|---|---|---|---|
-| State | ✓ | ✓ | ✓ final | ✓ | in progress (S4 of 7 done) | ongoing | — | — | — | — |
+| State | ✓ | ✓ | ✓ final | ✓ | in progress (S5 of 7 done) | ongoing | — | — | — | — |
 
 ---
 
@@ -112,7 +112,7 @@ Build, package and smoke scripts are in [Tools/](Tools/). Every Unreal job on th
 | [01b_Research_Findings](Explanation/01b_Research_Findings.md) | Phase 2: how the 5.8.4 GC actually works (verified in source), the README claims checked, and what changed in the design |
 | [02_System_Architecture](Explanation/02_System_Architecture.md) | Final v1.0: modules, classes, data flow, per-frame flow, safety rules, rejected alternatives |
 | [03_Implementation_Roadmap](Explanation/03_Implementation_Roadmap.md) | The small, ordered build steps; baselines captured before the proposed store exists |
-| [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | Fundamentals, line-by-line code, APIs and macros, common mistakes. Current to Phase 5 step S4 |
+| [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | Fundamentals, line-by-line code, APIs and macros, common mistakes. Current to Phase 5 step S5 |
 | [09](Explanation/09_Testing_And_Benchmarks.md) | Every check so far, with its exact command and result |
 | [08](Explanation/08_Debugging_And_Profiling.md) · [10](Explanation/10_Interview_Questions.md) · [11](Explanation/11_Optimization_Decisions.md) · [12](Explanation/12_Future_Scalability.md) | Filled in during Phases 7–10 |
 | [Phase2_Raw_Notes/](Explanation/Phase2_Raw_Notes/README.md) | The audit trail behind `01b`: every quote and source line |

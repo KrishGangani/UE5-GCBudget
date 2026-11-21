@@ -9,6 +9,7 @@
 | C | Phase 5, S2 (measurement tools) | `Tools\csv_stats.py`, `Tools\run_bench.py`, `Tools\validate_bracket.py`, `Tools\check_batch.py` |
 | D | Phase 5, S3 (handles + tests, plugin) | `GCBudgetHandle.h/.cpp`, `Private/Tests/GCBudgetHandleTests.cpp`, `Tools\run_tests.bat` |
 | E | Phase 5, S4 (workload + UObject stores, game) | `GCBItemDef.h`, `GCBWorkload.h/.cpp`, `GCBItemObject.h`, `GCBItemStore.h/.cpp`, `GCBObjectItemStore.h/.cpp`, the director's S4 changes, `Tools\run_bench.py`'s S4 changes |
+| F | Phase 5, S5 (struct store with references, game) | `GCBStructItemStores.h/.cpp`, the director's S5 changes, `GCBudget.Build.cs` (the plugin becomes public), `Tools\run_bench.py`'s S5 change |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -83,9 +84,8 @@ public class GCBudget : ModuleRules
 	public GCBudget(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine" });
-		// GCBudgetCore is private for now: no public header of this module includes a plugin header yet.
-		PrivateDependencyModuleNames.AddRange(new string[] { "GCBudgetCore" });
+		// GCBudgetCore is public: a public header (GCBStructItemStores.h) includes its GCBudgetHandle.h.
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "GCBudgetCore" });
 	}
 }
 ```
@@ -97,7 +97,7 @@ public class GCBudget : ModuleRules
 | `ReadOnlyTargetRules Target` | A module can read target settings (platform, configuration) but not change them, so module rules can't fight each other |
 | `PCHUsage = UseExplicitOrSharedPCHs` | Use a **shared precompiled header** from the engine unless the module names its own (`Rules/ModuleRules.cs:220`). The build log shows it: `SharedPCH.Engine.Project…` for the game target, `SharedPCH.UnrealEd.Project…` for the editor. Precompiled headers make each `.cpp` compile faster. *Rejected:* `NoPCHs` (slow), a private PCH (unneeded for a small module) |
 | `PublicDependencyModuleNames …` | Modules whose **headers our public headers will include**. Phase 5's public headers declare UObjects and world subsystems, so `Core` (containers, strings), `CoreUObject` (UObject, reflection, GC) and `Engine` (worlds, subsystems) are public |
-| `PrivateDependencyModuleNames … "GCBudgetCore"` | **Rule of thumb: private unless a public header needs it.** Today only `.cpp` files could use the plugin. It becomes public in the step where a public header of this module first includes a plugin header (the struct stores hold `FGCBudgetHandle`, S6), and `05` records that change then. Over-using public dependencies spreads include paths and slows builds |
+| `GCBudgetCore` in `PublicDependencyModuleNames` | **Rule of thumb: private unless a public header needs it.** Until S4 only `.cpp` files used the plugin, so it was private. Since S5 a public header, `GCBStructItemStores.h`, includes the plugin's `GCBudgetHandle.h`, so the dependency is public (F3). Over-using public dependencies spreads include paths and slows builds |
 | *Not included:* `InputCore`, `EnhancedInput` | The template adds them, but this project reads no player input in code. The dependency list stays honest |
 
 ### A4. `Source\GCBudget\Private\GCBudgetModule.cpp`
@@ -497,3 +497,38 @@ Runs `UnrealEditor-Cmd <project> -ExecCmds="Automation RunTests GCBudget;Quit" -
 | `is_failure`: a probe error, or fewer cycles in the bracket than GC requests, fails the run | A lookup that finds the wrong item, or a request that started no cycle, would make the run's numbers meaningless |
 | `checksum_groups` / `checksum_mismatches`, and a "Checksums (SC7)" table in the summary | Every measured run with the same items, seed and frame count must report the same checksum, whatever its configuration. A mismatch fails the batch |
 | `--verify-gc` swaps `-NoVerifyGC` for `-VERIFYGC` | A diagnostic run with the engine's GC verification on (`Runtime/CoreUObject/Private/UObject/Obj.cpp:5915–5944`); never for timed runs. The environment record says which one a batch used |
+
+## Part F · Step S5: the struct store that still holds references (configuration S1)
+
+### F1. `GCBStructItemStores.h` / `.cpp`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `#include "GCBudgetHandle.h"` | The plugin's handles and slot allocator (Part D). This public header includes a plugin header, so the plugin became a **public** dependency (F3) |
+| `USTRUCT() struct FGCBItemDataRef` | S1's element: `TObjectPtr<UGCBItemDef> Def`, `TicksLeft`, `Magnitude`, `Charges`, `Serial`. The same fields as `UGCBItemObject`, as a plain struct. Because it holds a strong reference, a `UPROPERTY` array of these is walked **element by element** by the GC (`Runtime/CoreUObject/Private/UObject/GarbageCollection.cpp:6874–6876`; `01b` #5). That is the point of S1: as many references as U0, but almost no UObjects (H2) |
+| `namespace GCBStructItem { GetDef; SetDef }` | How the shared code reads and writes an element's definition. One pair of overloads per element type; S0 adds its own in S7. They are declared **before** the templates that call them, because a qualified call is looked up where the template is defined (`04` §29) |
+| `UCLASS(Abstract) class UGCBStructItemStoreBase` | The code both struct stores share. A `UCLASS` can't be a template, so the shared code is a set of **member templates** over the element type, and each concrete class owns its own `UPROPERTY` array. The two stores therefore run exactly the same logic |
+| `PopulateStructItems(Items)` | Clears the items, the slot allocator and the probe handles, then allocates slots 0…N−1 in order; `check(Handle.Index == Lane)` states that lane = slot (`06` §26). `AddDefaulted` then `WriteItem` |
+| `UpdateStructItems(Items, Ticks)` | Slot order (= lane order). Skips a free slot, which never happens in this workload but keeps the store correct with holes. `AgeItem` through `GetDef(Item, Defs)->DecayQ16`. On expiry: `NextLife`, then `Release` the slot's handle and `Allocate` again. The allocator is LIFO, so the **same** slot comes back with a new generation (`check(Reused.Index == Slot)`): every outstanding handle to the old item is now stale, and the array stays dense |
+| `RunStructProbe(Items, Lookups)` | The shared probe loop (E4) with a lambda that resolves a handle: `Slots.Resolve(Handle)` (one bounds check, one bit, one compare), then reads the item. `[this, &Items]` captures the array by reference, which is safe because the lambda never outlives the call (`04` §23) |
+| `StructChecksum(Items)` | Lane order, the definition's `Index`: the same CRC as U0 for the same work (SC7) |
+| `CaptureProbeRef(PoolIndex, Lane)` | The probe's reference is the lane's current **handle** (`Slots.GetHandle(Lane)`), a plain value that keeps nothing alive |
+| `Slots`, `ProbeHandles` | The allocator and the probe's handles: plain C++, not `UPROPERTY`, because they hold no object references |
+| `WriteItem(Item, Params, Serial)` (private) | Fills one element from the workload's parameters; `SetDef` stores the definition the element type's way |
+| `UCLASS() class UGCBStructRefItemStore` | Configuration S1. Four one-line overrides that call the templates with its own `UPROPERTY() TArray<FGCBItemDataRef> Items` |
+| `.cpp` | Only the generated reflection code; all the logic is in the header's templates |
+
+### F2. `GCBBenchmarkSubsystem` changes in S5
+
+| Change | Why |
+|---|---|
+| `EGCBConfig::S1`, one more row in `ParseConfig`'s table | The configuration this step adds |
+| `CreateWorkload()`: S1 creates a `UGCBStructRefItemStore`, every other item configuration a `UGCBObjectItemStore` | The director only chooses the store; the workload, the probe and the GC cadence are the same code for all of them |
+
+### F3. `GCBudget.Build.cs`: the plugin becomes a public dependency
+
+`PublicDependencyModuleNames` now lists `GCBudgetCore`, and the private list is gone. `GCBStructItemStores.h` is a public header that includes the plugin's `GCBudgetHandle.h`, so any module that includes it must see the plugin's include path too (the rule in A3).
+
+### F4. `Tools\run_bench.py` change in S5
+
+`CONFIGS` gains `S1`.

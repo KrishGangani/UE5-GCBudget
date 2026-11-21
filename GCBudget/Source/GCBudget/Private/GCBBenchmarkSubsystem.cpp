@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "GCBItemDef.h"
 #include "GCBObjectItemStore.h"
+#include "GCBStructItemStores.h"
 #include "GCBudgetTelemetrySubsystem.h"
 #include "GCBWorkload.h"
 #include "HAL/IConsoleManager.h"
@@ -156,6 +157,7 @@ EGCBConfig UGCBBenchmarkSubsystem::ParseConfig(const FString& Name)
 		{ TEXT("U0"), EGCBConfig::U0 },
 		{ TEXT("U1"), EGCBConfig::U1 },
 		{ TEXT("U2"), EGCBConfig::U2 },
+		{ TEXT("S1"), EGCBConfig::S1 },
 	};
 	for (const TPair<const TCHAR*, EGCBConfig>& Entry : Known)
 	{
@@ -172,7 +174,7 @@ bool UGCBBenchmarkSubsystem::ValidateRunSettings() const
 	bool bValid = true;
 	if (Settings.Config == EGCBConfig::None)
 	{
-		UE_LOG(LogGCBBench, Error, TEXT("-GCBConfig=%s is unknown or not built yet (this build supports: E0, U0, U1, U2)."), *Settings.ConfigName);
+		UE_LOG(LogGCBBench, Error, TEXT("-GCBConfig=%s is unknown or not built yet (this build supports: E0, U0, U1, U2, S1)."), *Settings.ConfigName);
 		bValid = false;
 	}
 	if (Settings.Config == EGCBConfig::E0 && Settings.Items != 0)
@@ -249,9 +251,16 @@ void UGCBBenchmarkSubsystem::CreateWorkload()
 		return;
 	}
 
-	UGCBObjectItemStore* ObjectStore = NewObject<UGCBObjectItemStore>(this);
-	ObjectStore->bClusterPages = (Settings.Config == EGCBConfig::U1);
-	Store = ObjectStore;
+	if (Settings.Config == EGCBConfig::S1)
+	{
+		Store = NewObject<UGCBStructRefItemStore>(this);
+	}
+	else
+	{
+		UGCBObjectItemStore* ObjectStore = NewObject<UGCBObjectItemStore>(this);
+		ObjectStore->bClusterPages = (Settings.Config == EGCBConfig::U1);
+		Store = ObjectStore;
+	}
 
 	const double Start = FPlatformTime::Seconds();
 	Store->Populate(Settings.Items, static_cast<uint32>(Settings.Seed), Definitions);

@@ -81,6 +81,7 @@ CONFIGS = {
     "U0": "-GCBConfig=U0",        # one UObject per item, in pages of 1,024
     "U1": "-GCBConfig=U1",        # U0 + every page a GC cluster, rebuilt before each cycle
     "U2": "-GCBConfig=U2",        # U0 + incremental reachability (Experimental), 2 ms slices
+    "S1": "-GCBConfig=S1",        # structs in one array, each still holding a TObjectPtr to its definition
 }
 
 UPDATE_NS = "GCBWorkload/UpdateNsPerItem"
@@ -322,7 +323,7 @@ def main(argv: list[str]) -> int:
         parser.error(f"unknown config(s) {unknown}; available: {sorted(CONFIGS)}")
     item_counts = [int(n) for n in args.items.split(",") if n.strip()]
     if any(c != "E0" for c in configs) and not all(n > 0 for n in item_counts):
-        parser.error("U0, U1 and U2 need --items > 0 (E0 always runs at N = 0)")
+        parser.error("every configuration except E0 needs --items > 0 (E0 always runs at N = 0)")
     if args.runs <= 0:
         args.runs = len(configs)
     elif args.runs % len(configs):
