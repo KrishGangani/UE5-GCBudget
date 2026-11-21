@@ -2,7 +2,7 @@
 
 **Rule:** only APIs and macros the project **actually uses** are explained, each in the 8-point format: (1) what it is, (2) why it exists, (3) how it works, (4) when to use it, (5) when not to, (6) common mistakes, (7) a small example, (8) how it applies here. Engine facts cite UE 5.8.4 `File:line`, relative to `Engine/Source/` unless stated.
 
-**Current to:** Phase 5 step S1. Later steps add their APIs in the step that first uses each.
+**Current to:** Phase 5 step S3. Later steps add their APIs in the step that first uses each.
 
 ---
 
@@ -241,3 +241,58 @@
 | `UCLASS(MinimalAPI)` + `UE_API` | The telemetry class | Exports `StaticClass` and the marked members only |
 | `DECLARE_MULTICAST_DELEGATE_OneParam` | `OnFrameStats` | A native delegate: no reflection, no Blueprint |
 | `UE_INLINE_GENERATED_CPP_BY_NAME` | Every `.cpp` with a `UCLASS` | Compiles the generated code into the same file |
+
+## APIs added in step S3 (handles and their tests)
+
+## 16. `USTRUCT(BlueprintType)`, `GENERATED_BODY()`, `UPROPERTY()` on struct fields
+
+1. **What:** reflection markers for a C++ struct (`Runtime/CoreUObject/Public/UObject/ObjectMacros.h:780`). The Unreal Header Tool reads them and generates the struct's type information (`GCBudgetHandle.generated.h`).
+2. **Why:** a reflected struct can be a `UPROPERTY` of a UObject, be saved, be copied by the editor, and (with `BlueprintType`) pass through Blueprint.
+3. **How:** `GENERATED_BODY()` expands to the generated declarations. Each `UPROPERTY()` field is listed in the struct's type information, so the engine can see it: and, if it is an object reference, so can the garbage collector.
+4. **When:** data that must be stored in reflected containers, serialised, or used from Blueprint.
+5. **When not:** purely internal data on hot paths that nothing else needs to see. `FGCBudgetSlotAllocator` is a plain C++ class for that reason.
+6. **Common mistakes:**
+   - Fields without `UPROPERTY()`, which reflection (and the GC) can't see.
+   - `uint32` fields in a `BlueprintType` struct: Blueprint has no unsigned 32-bit type, so the struct can't be used there.
+7. **Example:** `USTRUCT(BlueprintType) struct FMyHandle { GENERATED_BODY() UPROPERTY() int32 Index = INDEX_NONE; };`
+8. **Here:** `FGCBudgetHandle`, two `int32` fields. Its `GetTypeHash` friend (`04` §15) uses `HashCombineFast` (`Runtime/Core/Public/Templates/TypeHash.h:89`).
+
+## 17. `TBitArray<>`, and `TArray::Pop` / `Push` with `EAllowShrinking`
+
+1. **What:** a dynamic array of bits (`Runtime/Core/Public/Containers/BitArray.h:360`), and `TArray`'s stack operations (`Runtime/Core/Public/Containers/Array.h:1440`).
+2. **Why:** one flag per element in one bit; and a stack without extra containers.
+3. **How:** `Alive.Add(false)` appends a bit; `Alive[Index]` reads or writes one (through a small proxy object). `Reserve(N)` pre-sizes the storage (`BitArray.h:811`). `Pop(EAllowShrinking::No)` removes the last element without giving memory back.
+4. **When:** per-element flags over large arrays.
+5. **When not:** when the flags are always read together with other per-element data: a field in the element is then cheaper than a second array.
+6. **Common mistakes:** `Pop()` with the default shrinking policy, which can reallocate repeatedly as a stack grows and shrinks.
+7. **Example:** `TBitArray<> Alive; Alive.Add(true); if (Alive[0]) { … }`
+8. **Here:** `FGCBudgetSlotAllocator::Alive` and `FreeSlots`.
+
+## 18. Automation tests: `IMPLEMENT_SIMPLE_AUTOMATION_TEST`, `EAutomationTestFlags`, `TestEqual` / `TestTrue` / `TestFalse`
+
+1. **What:** Unreal's built-in unit-test framework (`Runtime/Core/Public/Misc/AutomationTest.h`). The macro declares a test class and registers it under a dotted name (`:4297–4298`, `:4367–4368`).
+2. **Why:** tests that run inside the engine, are listed in the Session Frontend, and can run headless from the command line.
+3. **How:**
+   - The macro creates `FMyTest` with a `RunTest(const FString& Parameters)` that the author writes.
+   - The flags say where it may run (`EditorContext`, `ClientContext`) and which filter it belongs to (`ProductFilter`) (`AutomationTest.h:88–142`).
+   - `TestEqual(What, Actual, Expected)` and friends log a failure with the description and the values (`:1985, 2367, 2603`); the test fails if any check failed.
+   - Running `UnrealEditor-Cmd.exe <project> -ExecCmds="Automation RunTests <filter>;Quit" -unattended -nullrhi` runs every test whose name contains the filter, then quits. A failure sets `GIsCriticalError`, so the process exits with a non-zero code (`Developer/AutomationController/Private/AutomationCommandline.cpp:491–504`).
+4. **When:** logic that can be tested without a world: containers, math, parsers.
+5. **When not:** behaviour that needs a running game or real timing: the packaged runs check those.
+6. **Common mistakes:**
+   - A test that always returns `true` without making any checks.
+   - Running the tests without `;Quit`, so the editor never exits, or without checking the exit code, so a failure goes unnoticed.
+   - Forgetting `#if WITH_DEV_AUTOMATION_TESTS`, which breaks builds without tests.
+7. **Example:** `IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMyTest, "Project.Area.Case", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter) bool FMyTest::RunTest(const FString&) { TestEqual(TEXT("sum"), 1 + 1, 2); return true; }`
+8. **Here:** six tests named `GCBudget.Handles.*`, run by `Tools\run_tests.bat` through the job queue.
+
+## 19. `FRandomStream`
+
+1. **What:** a small seeded pseudo-random generator (`Runtime/Core/Public/Math/RandomStream.h:19`).
+2. **Why:** the same seed gives the same sequence on every run and every machine, unlike `FMath::Rand`.
+3. **How:** `FRandomStream Random(1234); Random.RandRange(0, 99)` returns an integer in [0, 99] (`:209`).
+4. **When:** reproducible tests and procedural content.
+5. **When not:** anything that must be unpredictable.
+6. **Common mistakes:** seeding from the clock in a test, which makes a failure impossible to reproduce.
+7. **Example:** `FRandomStream Random(Seed); const int32 Roll = Random.RandRange(0, 99);`
+8. **Here:** the one-million-operation model test. The game's workload uses its own integer hash instead (S4), because it must give every lane its values independently of call order.

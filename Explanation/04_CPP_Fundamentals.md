@@ -1,6 +1,6 @@
 # 04 · C++ Fundamentals: GCBudget
 
-**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S1. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
+**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S3. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
 
 ---
 
@@ -108,3 +108,43 @@
 ## 13. Lambdas are not used yet
 
 S1 needs no lambdas. They arrive in S4 (the probe loop), where they are explained with the code.
+
+## C++ added in step S3 (handles and their tests)
+
+## 14. Constructors: `= default` and a member initialiser list
+
+- `FGCBudgetHandle() = default;` asks the compiler for the ordinary default constructor. Together with the default member initialisers (`Index = INDEX_NONE`, `Generation = 0`, §8), a default handle is always the invalid one.
+- `FGCBudgetHandle(int32 InIndex, int32 InGeneration) : Index(InIndex), Generation(InGeneration) {}` initialises the members directly in the **member initialiser list**, instead of assigning them inside the body.
+- Declaring any constructor stops the compiler from generating the default one, which is why `= default` is written out.
+
+## 15. Operator overloading and a hidden `friend`
+
+- `operator==` and `operator!=` make `A == B` compare both fields. `!=` is written in terms of `==`, so the two can never disagree.
+- `friend uint32 GetTypeHash(const FGCBudgetHandle&)` is defined **inside** the struct. A friend defined there is a free function, not a member, and is found only through the argument's type ("argument-dependent lookup"). That is how `TSet`/`TMap` find a key's hash.
+- Inside it, `::GetTypeHash(Handle.Index)` with the leading `::` calls the global overload for `int32`, not this function again.
+
+## 16. Sentinel values and integer wrap-around
+
+- `INDEX_NONE` (−1) means "no index". Generation 0 means "never issued": slots start at generation 1, so a default handle can never match a slot.
+- Signed integer overflow is **undefined behaviour** in C++: `MAX_int32 + 1` may do anything. `Release` therefore tests for `MAX_int32` *before* incrementing and wraps to 1 by hand, never to 0.
+
+## 17. Inline functions in a header, and `const` member functions
+
+- `IsValid`, `Resolve`, `IsSlotAlive`, `GetHandle`, `Num` are defined in the class body, which makes them implicitly `inline`. Every caller sees the body and the compiler can fold them into the caller's loop: one bounds check, one bit, one compare per lookup.
+- `Allocate`, `Release`, `Reserve`, `Reset` change state and are not on the per-lookup path, so they live in the `.cpp`.
+- A `const` after the parameter list (`bool IsValid(FGCBudgetHandle) const`) promises the function doesn't change the object, so it can be called through a `const` reference.
+
+## 18. A stack as a free list, and a bit array
+
+- `FreeSlots` is used as a **stack**: `Push` on release, `Pop` on allocate. The most recently freed slot comes back first (LIFO). Its memory is the most likely to still be in the CPU cache, and in this workload the array stays dense.
+- `TBitArray<>` stores one flag per slot in one bit. A `TArray<bool>` would use a byte per flag: eight times the memory for the same information.
+
+## 19. Compile-time constants and conditional compilation
+
+- `constexpr EAutomationTestFlags Flags = …` is computed by the compiler. The `|` on this enum is a `constexpr` operator (`ENUM_CLASS_FLAGS`, `Runtime/Core/Public/Misc/EnumClassFlags.h:8, 12`), so the whole expression is a constant.
+- `#if WITH_DEV_AUTOMATION_TESTS … #endif` removes the tests from builds without development tests. The build tool defines the macro, as 1 in every configuration except Test and Shipping (`Programs/UnrealBuildTool/Configuration/UEBuildTarget.cs:6315, 6331`).
+
+## 20. Testing against a reference model
+
+- The random test drives the allocator with one million random operations from a **fixed seed** (`FRandomStream(1234)`), so every run performs the same sequence and a failure can be reproduced.
+- After each operation it compares the allocator with a deliberately simple **model**: an array of live handles and a sample of dead ones. The model is too slow for real use but obviously correct, so any disagreement is a bug in the allocator.

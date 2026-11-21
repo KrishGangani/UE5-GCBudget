@@ -1,6 +1,6 @@
 # 07 · Common Mistakes: GCBudget
 
-**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S2. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
+**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S3. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
 
 ---
 
@@ -49,3 +49,12 @@
 | Classifying GC frames in a trace by duration alone | Purge frames after a cycle can be as long as a cycle-start frame, so a threshold mixes the two | More "cycle" events than cycles (here 22 for 12) | *(Made in the first validation.)* Match frames by index and check the alignment against the known cadence (`05` C3) |
 | Chaining a traced validation after a traced run with `&&` | A traced run can fail for reasons outside the measured code (here: exit 777003 after its log had closed, `09` S2), and the chain then stops before the validation | The job fails although the trace was written | *(Made in jobs 4 and 5.)* The validation runs in its own short job on the recorded trace; traced runs never share a chain with untraced batches |
 | A script edit that puts a real line break inside a `TEXT("…")` literal | A string literal can't span source lines; the compiler rejects the file | A build error in a file the edit touched | *(Made while applying a review fix; found by reading the result before the build.)* After any scripted source edit, check every changed line for an unescaped `\n` and an even number of quotes |
+
+## 4. Handles and tests (S3)
+
+| Mistake | Why it is wrong | How to spot it | Prevention in this project |
+|---|---|---|---|
+| Starting generations at 0 | A default-constructed handle (`Generation = 0`) would match a fresh slot | A handle nobody issued resolves | Slots start at generation 1; the `DefaultIsInvalid` test checks it (`05` D1, D3) |
+| Incrementing a generation without a wrap check | Signed overflow is undefined behaviour; a wrap to 0 would also revalidate default handles | Only after 2³¹ releases of one slot, so practically never in a test | `Release` wraps `MAX_int32` to 1 explicitly (`04` §16; `05` D2) |
+| Tests that only cover the obvious cases | Allocators fail on rare interleavings of allocate and release | A test suite that passes while real use corrupts state | One million random operations against a simple model, from a fixed seed, so a failure is reproducible (`04` §20; `05` D3) |
+| Trusting a test run's console output instead of its exit code | A run with failures still prints a lot of normal-looking output | A queue job "ok" with failing tests | `run_tests.bat` returns the editor's exit code, which is non-zero after any failure (`06` §18) |

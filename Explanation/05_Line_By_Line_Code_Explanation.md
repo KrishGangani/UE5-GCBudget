@@ -7,6 +7,7 @@
 | A | Phase 4, F1–F3 (foundation) | `.uproject`, two `Target.cs`, two `Build.cs`, two module `.cpp`, `.uplugin`, three config `.ini`, `Tools\*.bat`, `Tools\cpu_affinity.py` |
 | B | Phase 5, S1 (telemetry + director, E0 only) | `GCBudgetTelemetrySubsystem.h/.cpp` (plugin), `GCBBenchmarkSubsystem.h/.cpp` (game) |
 | C | Phase 5, S2 (measurement tools) | `Tools\csv_stats.py`, `Tools\run_bench.py`, `Tools\validate_bracket.py`, `Tools\check_batch.py` |
+| D | Phase 5, S3 (handles + tests, plugin) | `GCBudgetHandle.h/.cpp`, `Private/Tests/GCBudgetHandleTests.cpp`, `Tools\run_tests.bat` |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -351,3 +352,59 @@ Adapted from the reference project's runner. Unchanged parts: the batch name, in
 | The checks | No frame with two cycle starts; starts exactly `gc_frames` apart and on the trigger frames (unless `gc_frames` is 0, the engine-timer diagnostic); the engine's count equals ours; a pause on every cycle frame and on no other; requests = cycles inside the bracket; both GC settings present in the log; no log errors. A missing report or log fails the run (*found in the self-review*: it raised a traceback) |
 | `main(argv)` | Runs every capture of the batch, priming included; exit code 0 if all pass, 1 if any fails, 2 for a usage error or an unknown batch |
 | Reuse | Column names and the CSV parser come from `csv_stats.py`, so the two tools can't disagree about what a column means |
+
+
+## Part D · Step S3: generational handles (plugin)
+
+### D1. `GCBudgetHandle.h`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `#include "Containers/BitArray.h"`, `"CoreMinimal.h"`, `"GCBudgetHandle.generated.h"` | `TBitArray` for the alive flags; the core types; UHT's generated code (last) |
+| `USTRUCT(BlueprintType) struct UE_API FGCBudgetHandle` | A reflected struct, so a handle can be a `UPROPERTY` (saved, copied, seen by tools) and pass through Blueprint as an opaque value. `UE_API` (= `GCBUDGETCORE_API`) exports its generated reflection function, because other modules use the type in their own reflected classes |
+| `GENERATED_BODY()` | The reflection boilerplate; it also makes `StaticStruct()` available |
+| Two constructors | `= default` keeps the default member initialisers (an invalid handle). `(InIndex, InGeneration)` is how the allocator issues handles (`04` §14) |
+| `UPROPERTY() int32 Index = INDEX_NONE` | The slot. `INDEX_NONE` (−1) for "never issued". No specifiers: saved and copied, but not editable or visible in Blueprint, so nobody can forge one |
+| `UPROPERTY() int32 Generation = 0` | Generations start at 1, so 0 can never match a live slot. `int32`, because Blueprint has no `uint32` |
+| `IsSet()` | "Was ever issued", which is **not** "is valid". Only the allocator knows whether the slot still holds that generation |
+| `operator==` / `!=`, `GetTypeHash` | Value semantics, so handles can be compared and used as `TMap`/`TSet` keys. `HashCombineFast` mixes the two fields (`Runtime/Core/Public/Templates/TypeHash.h:89`) |
+| `class FGCBudgetSlotAllocator` | Plain C++, no UObject: it holds only integers, so the automation tests can create it on the stack. **The owner keeps the data array** (D3 and Part E explain why) |
+| `Allocate()` / `Release()` (`UE_API`) | Defined in the `.cpp` (D2) and exported for other modules |
+| `IsValid(Handle)` (inline) | Three checks in the cheapest order: the index is in range (`IsValidIndex` also rejects −1), the slot is alive (one bit), the generations match. Inline, because the probe calls it a thousand times per frame |
+| `Resolve(Handle)` | Index or `INDEX_NONE`: the one call a lookup needs |
+| `IsSlotAlive`, `GetHandle`, `Num`, `NumSlots` | Small read-only queries. `GetHandle` returns the *current* handle of a live slot, which is how a store hands out a reference |
+| `Reserve`, `Reset` (`UE_API`) | Pre-sizing for a known population; forgetting everything |
+| Private members | `TArray<int32> Generations` (per slot), `TArray<int32> FreeSlots` (LIFO stack), `TBitArray<> Alive` (one bit per slot), `int32 NumAlive` |
+| The wrap-around limit in the class comment | After 2³¹ − 1 releases of one slot the generation returns to 1, and a very old handle could match again. Stated, not hidden (02 §12) |
+
+### D2. `GCBudgetHandle.cpp`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `#include UE_INLINE_GENERATED_CPP_BY_NAME(GCBudgetHandle)` | Compiles the USTRUCT's generated code here |
+| `Allocate()` | Pops the most recently released slot (`Pop(EAllowShrinking::No)`, `Runtime/Core/Public/Containers/Array.h:1440`: no shrinking, so a churn-heavy store never reallocates the stack) or appends a new slot at generation 1 with a new alive bit. Marks it alive and counts it |
+| `Release(Handle)` | Refuses anything that isn't current (`false`): a stale, foreign or double release can't corrupt the bookkeeping. Otherwise it clears the alive bit, **increments the generation** (wrapping to 1, never 0), pushes the slot on the free stack and uncounts it |
+| `Reserve`, `Reset` | Forward to the three containers |
+
+*Why LIFO:* a slot released this frame is refilled this frame, so the store stays dense, and the reused memory is the hottest in the cache. A FIFO queue would spread reuse over the whole array.
+
+### D3. `Private/Tests/GCBudgetHandleTests.cpp`
+
+| Test | What it proves |
+|---|---|
+| `GCBudget.Handles.DefaultIsInvalid` | A default handle is never valid, generation 0 never matches, releasing it does nothing |
+| `GCBudget.Handles.AllocateResolve` | Slots 0, 1, …; generation 1; `Resolve`, `Num`, `NumSlots`, `GetHandle`; out-of-range indices rejected |
+| `GCBudget.Handles.ReleaseMakesStale` | A released handle is stale, a second release fails, the slot remains |
+| `GCBudget.Handles.LifoReuseNewGeneration` | Reuse is LIFO, a reused slot has generation 2, and the old handle stays stale |
+| `GCBudget.Handles.Reset` | Everything is forgotten; allocation restarts at slot 0 |
+| `GCBudget.Handles.RandomAgainstModel` | 1,000,000 seeded random operations (45% allocate, 45% release, 10% check). After each: the live count matches the model; sampled live handles resolve to themselves; sampled released handles are stale. Expected mismatches: **0** |
+
+- `#if WITH_DEV_AUTOMATION_TESTS` compiles the tests only where development tests exist: every configuration except Test and Shipping (`Programs/UnrealBuildTool/Configuration/UEBuildTarget.cs:6315, 6331`).
+- `IMPLEMENT_SIMPLE_AUTOMATION_TEST(Class, "Pretty.Name", Flags)` declares a test class; its `RunTest` is the body (`Runtime/Core/Public/Misc/AutomationTest.h:4297`).
+- The flags `EditorContext | ClientContext | ProductFilter` make the tests run in the headless editor run and appear under the product filter.
+
+### D4. `Tools\run_tests.bat`
+
+Runs `UnrealEditor-Cmd <project> -ExecCmds="Automation RunTests GCBudget;Quit" -unattended -nullrhi …`.
+- The engine sets a critical error when any test fails, so the process exits non-zero (`Developer/AutomationController/Private/AutomationCommandline.cpp:491–504`). The queue job therefore fails on a failed test.
+- It captures `%~dp0` first, the Phase 4 lesson (`07` §1).

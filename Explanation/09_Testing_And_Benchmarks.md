@@ -145,3 +145,20 @@ S1 has no automation tests. Its checks are packaged runs, measured with the S2 t
    - `--label` in `validate_bracket.py` matched as a substring, so `E0` could match a configuration name. It now matches the batch label exactly (`05` C3).
 2. **Clean-up pass** (structured self-review): `frame_events` found the EVENTS column once per frame; it is now found once per capture. A lambda in the summary became a named nested function (`05` C1, C2).
 3. **`check_batch.py`** (added after job 5 from a throwaway checker, so that S1-4 has a committed command): a structured self-review fixed a membership test that rebuilt a set on every frame, and made a missing report or log a failed run instead of a traceback (`05` C4).
+
+### S3 · Handles and their tests, plugin only (2026-11-21)
+
+S3 (plugin) and S4 (game module) were built and checked in **one** queue job and are committed separately (`03`, Changes): the two modules compile independently, so each commit's code was compiled exactly as committed.
+
+| Queue job | What changed before it | Outcome |
+|---|---|---|
+| 8 · `20261121_040416_88b112` | S3 and S4 in the tree | ❌ failed in 0.0 s at its first step, a gate `dir <file> >nul` that reached `cmd` as `>/dev/null` (`07` §1). Nothing was built |
+| 9 · `20261121_045731_a270b9` | The gate became `type <file>` | ✅ every step. **The committed state of S3 and S4** |
+
+| # | Check | Command | Result (job 9) |
+|---|---|---|---|
+| S3-1 | Editor target builds (S3 + S4) | `Tools\build.bat GCBudgetEditor Development` | ✅ 13 actions (8 compiles), 13.30 s, **0 errors, 0 warnings** |
+| S3-2 | Game target builds (S3 + S4) | `Tools\build.bat GCBudget Development` | ✅ 10 actions (8 compiles), 15.81 s, **0 errors, 0 warnings** |
+| S3-3 | The handle tests | `Tools\run_tests.bat GCBudget` | ✅ "Found 6 automation tests based on 'GCBudget'"; all six `Result={Success}` (`DefaultIsInvalid`, `AllocateResolve`, `ReleaseMakesStale`, `LifoReuseNewGeneration`, `Reset`, `RandomAgainstModel`: 1,000,000 operations, 0 mismatches); "TEST COMPLETE. EXIT CODE: 0" |
+
+**Audit trail (S3 code):** the review (the code-review skill at medium, over all of the staged S3–S5 code before the first build) found nothing in the S3 code. The clean-up pass changed nothing in it either.
