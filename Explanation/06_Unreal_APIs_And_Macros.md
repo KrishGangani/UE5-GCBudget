@@ -2,7 +2,7 @@
 
 **Rule:** only APIs and macros the project **actually uses** are explained, each in the 8-point format: (1) what it is, (2) why it exists, (3) how it works, (4) when to use it, (5) when not to, (6) common mistakes, (7) a small example, (8) how it applies here. Engine facts cite UE 5.8.4 `File:line`, relative to `Engine/Source/` unless stated.
 
-**Current to:** Phase 5 step S7. Later steps add their APIs in the step that first uses each.
+**Current to:** the end of Phase 5 (re-checked in Phase 6). APIs are grouped by the step that first used each.
 
 ---
 
@@ -98,8 +98,18 @@
 | `-abslog=<path>` | Write the log to an absolute path | `Runtime/Core/Private/GenericPlatform/GenericPlatformOutputDevices.cpp:87` |
 | `-windowed -ResX= -ResY=` | Windowed at a fixed resolution | `Runtime/Engine/Private/GameEngine.cpp:291, 326` |
 | `BuildCookRun … -build -cook -stage -pak -archive` | Build, cook, stage, pak, copy to the archive folder | UAT; the package log shows each stage |
+| `-deterministic` | A fixed time step (with `-FPS=`), so every run advances by exactly 1/60 s per frame | `Runtime/Launch/Private/LaunchEngineLoop.cpp:2460` |
+| `-FPS=60` | The fixed step's rate: the delta time becomes 1/60 s | `LaunchEngineLoop.cpp:4727–4730` |
+| `-novsync` | Queues `r.vsync 0` at start-up | `Runtime/Engine/Private/UnrealEngine.cpp:2559–2562` |
+| `-csvStartOnEvent=` / `-csvStopOnEvent=` | Start and stop the CSV capture on the game's `BenchStart` / `BenchEnd` events | `Runtime/Core/Private/ProfilingDebugging/CsvProfiler.cpp:5081, 5090` |
+| `-trace=default,counters`, `-tracefile=` | Trace channels and the output file, for the traced validation runs; never with `-traceautostart=0` | `TraceAuxiliary.cpp:1952, 2000, 2017–2021` |
+| `-NoVerifyGC` / `-VERIFYGC` | GC verification off (every timed run) or on (the cluster check) | `Runtime/CoreUObject/Private/UObject/Obj.cpp:5915–5944` |
+| `-LogCmds="LogGarbage Log"` | Per-cycle GC timing lines, diagnostic batches only (`08` §4) | `Runtime/Core/Private/Logging/LogSuppressionInterface.cpp:519–540` |
+| `-ExecCmds="Automation RunTests <filter>;Quit"` | Runs the matching automation tests, then quits with a non-zero code if any failed (`run_tests.bat`) | `Developer/AutomationController/Private/AutomationCommandline.cpp:491–504` |
+| `-ReportExportPath=` | Where the automation report is written | `Developer/AutomationController/Private/AutomationControllerManager.cpp:233` |
+| `-GCBConfig=` … `-GCBExit` | The project's own switches, read by the director | `05` C8 |
 
-**Switches decided for Phase 5 timed runs** (verified in `01b`): `-deterministic -FPS=60` (fixed step), `-NoVerifyGC` (`Runtime/CoreUObject/Private/UObject/Obj.cpp:5917`), `-LogCmds="LogGarbage Log"` for diagnostics only (`Runtime/Core/Private/Logging/LogSuppressionInterface.cpp:519`), and `-trace=default,counters` for Insights runs (`01b` B-4).
+**Switches decided for Phase 5 timed runs** (verified in `01b`; the rows above give where each is parsed): `-deterministic -FPS=60` (fixed step), `-NoVerifyGC` (`Runtime/CoreUObject/Private/UObject/Obj.cpp:5917`), `-LogCmds="LogGarbage Log"` for diagnostics only (`Runtime/Core/Private/Logging/LogSuppressionInterface.cpp:519`), and `-trace=default,counters` for Insights runs (`01b` B-4).
 
 ---
 

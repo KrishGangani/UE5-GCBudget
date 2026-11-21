@@ -1,6 +1,6 @@
 # 04 · C++ Fundamentals: GCBudget
 
-**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S7. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
+**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** the end of Phase 5 (re-checked in Phase 6). Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
 
 ---
 
@@ -33,7 +33,7 @@
 | `setlocal` | Variables set after this disappear when the script ends | All scripts: nothing leaks into the queue's shell |
 | `set "NAME=value"` | Quotes around the whole assignment keep trailing spaces out and allow spaces in values | Paths under `D:\UNREAL PORTFOLIO` contain a space |
 | `%~1`, `%~dp0` | `%~1` is argument 1 without quotes; `%~dp0` is the drive and folder of argument 0, the script itself | Locating the project relative to the script |
-| `shift` | Moves every argument one place down: `%1` becomes `%0`… **including `%0`** | The Phase 4 bug: after `shift`, `%~dp0` no longer meant the script's folder (`05` A9, `07`) |
+| `shift` | Moves every argument one place down: `%1` becomes `%0`… **including `%0`** | The Phase 4 bug: after `shift`, `%~dp0` no longer meant the script's folder (`05` D1, `07`) |
 | `call x.bat` | Runs another batch file and **returns** to this one | `build.bat`, `package.bat` call the engine's scripts and then pass on the exit code |
 | `exit /b %ERRORLEVEL%` | Ends the script and hands the last exit code to the caller | The queue reports failure only if the exit code is non-zero |
 | `goto label` / `:label` | Jump to a label | `smoke_game.bat`'s two modes |
@@ -49,6 +49,13 @@
 - `struct.unpack_from("<II", raw, offset)` reads two little-endian 32-bit unsigned integers from a byte buffer at an offset. That is how the variable-length processor records are walked.
 - `GetCurrentProcess()` returns a *pseudo-handle* to the calling process: it needs no `CloseHandle`, which is why pinning the runner itself is simpler than opening and pinning each child process.
 - `try … finally` (used by the Phase 5 runner) guarantees the game's process tree is killed even if a run fails or times out.
+- `subprocess.Popen(command)` starts the game and returns at once; `process.wait(timeout=…)` waits with a limit and raises `TimeoutExpired`; `taskkill /F /T /PID` ends the whole process tree in the `finally` block.
+- `argparse` turns the command line into an object (`args.items`, `args.verify_gc`): dashes become underscores, and `--help` comes for free from the module docstring.
+- `json.load` / `json.dump(…, indent=2)` read and write the run reports and manifests; `glob.glob` finds a batch's files, and `os.path.getmtime` tells a fresh file from a stale one.
+- `re.fullmatch(r"[A-Za-z0-9_-]*", label)` accepts a label only if the **whole** string matches, unlike `re.match`, which only anchors at the start.
+- `statistics.median` for the across-runs statistic; percentiles are computed by hand in `csv_stats.py`, so the rule is visible and self-tested.
+- **Nested functions** (`run`, `combinations` in `run_bench.py`; `on_requests` in `check_batch.py`; `trace_at` in `validate_bracket.py`) read the variables of the function around them. The clean-up passes preferred them to lambdas: they have names and docstrings.
+- `from __future__ import annotations` lets the scripts write `int | None` and `list[str]` in annotations on every supported Python version.
 - `python -I` (isolated mode) ignores environment variables and the user's site-packages, and does not put the script's folder first on the import path. Scripts behave the same on every machine and can't pick up a stray module by accident.
 
 ---

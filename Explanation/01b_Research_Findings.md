@@ -110,7 +110,7 @@ Between the two delegates, the workload has nothing variable except GC: async-tr
 
 | Fact | Evidence (5.8.4) |
 |---|---|
-| Per UObject: the `UObjectBase` members plus the vtable, one `FUObjectItem`, hash-table entries, a traversal while reachable (including Outer and Class), a gather-scan slot, and purge work when it dies | `UObjectBase.h:399–464`; `UObjectArray.h:41–95`; `GarbageCollection.cpp:6288–6345`; `UObjectClusters.cpp:674–687` |
+| Per UObject: the `UObjectBase` members plus the vtable, one `FUObjectItem`, hash-table entries, a traversal while reachable (including Outer and Class), a gather-scan slot, and purge work when it dies | `UObjectBase.h:399–464`; `UObjectArray.h:41–95`; `GarbageCollection.cpp:6288–6345`; `Runtime/CoreUObject/Public/UObject/FastReferenceCollector.h:1017–1019` (the collector emits `Class` and `Outer` for every object it visits; a better source than the cluster builder Phase 2 cited, corrected in Phase 6) |
 | A packaged game's `FObjectHandle` is `UObject*`; reads don't call the tracking hook | `ObjectHandle.h:29–55, 603–615` ✔ |
 | With tracking compiled in (editor), a read costs an atomic load and a branch, plus callbacks if any are registered | `ObjectHandleTracking.h:103–121` |
 | `FWeakObjectPtr` = `ObjectIndex` + `ObjectSerialNumber` | `WeakObjectPtr.h:570–574` ✔ |

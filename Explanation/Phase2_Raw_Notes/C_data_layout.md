@@ -15,7 +15,7 @@ Not sizes (those are measured in Phase 8), only *what exists per object*, read f
 | `UObjectBase` members: `ObjectFlags`, `InternalIndex`, `ClassPrivate`, the name (with an object-hash index), `OuterPrivate`, plus the virtual table of `UObject` | `CoreUObject/Public/UObject/UObjectBase.h:399–464` |
 | One `FUObjectItem` in the global object array: packed flags, ref count and pointer, `SerialNumber`, `ClusterRootIndex` (and a remote id when remote objects are compiled in) | `CoreUObject/Public/UObject/UObjectArray.h:41–95` |
 | Entries in the UObject name and outer hash tables (that is what "unhashing" removes at purge time) | `UnhashUnreachableObjects`, `GarbageCollection.cpp:6288–6345` |
-| A GC traversal of its reflected references (schema) every cycle while reachable, plus its Outer and Class | A3; cluster code handles `EMemberlessId::Outer/Class` explicitly (`UObjectClusters.cpp:674–687`) |
+| A GC traversal of its reflected references (schema) every cycle while reachable, plus its Outer and Class | A3; cluster code handles `EMemberlessId::Outer/Class` explicitly (`UObjectClusters.cpp:674–687`). *Phase 6:* the GC's own collector does the same for every object it visits (`Runtime/CoreUObject/Public/UObject/FastReferenceCollector.h:1017–1019`), the more direct source |
 | A slot in the gather scan every cycle, reachable or not | `GatherUnreachableObjects`, `GarbageCollection.cpp:5388–5410` |
 | BeginDestroy / FinishDestroy / destructor at purge when it dies | A2 |
 
