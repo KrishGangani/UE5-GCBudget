@@ -158,6 +158,7 @@ EGCBConfig UGCBBenchmarkSubsystem::ParseConfig(const FString& Name)
 		{ TEXT("U1"), EGCBConfig::U1 },
 		{ TEXT("U2"), EGCBConfig::U2 },
 		{ TEXT("S1"), EGCBConfig::S1 },
+		{ TEXT("S0"), EGCBConfig::S0 },
 	};
 	for (const TPair<const TCHAR*, EGCBConfig>& Entry : Known)
 	{
@@ -174,7 +175,7 @@ bool UGCBBenchmarkSubsystem::ValidateRunSettings() const
 	bool bValid = true;
 	if (Settings.Config == EGCBConfig::None)
 	{
-		UE_LOG(LogGCBBench, Error, TEXT("-GCBConfig=%s is unknown or not built yet (this build supports: E0, U0, U1, U2, S1)."), *Settings.ConfigName);
+		UE_LOG(LogGCBBench, Error, TEXT("-GCBConfig=%s is unknown or not built yet (this build supports: E0, U0, U1, U2, S1, S0)."), *Settings.ConfigName);
 		bValid = false;
 	}
 	if (Settings.Config == EGCBConfig::E0 && Settings.Items != 0)
@@ -255,6 +256,10 @@ void UGCBBenchmarkSubsystem::CreateWorkload()
 	{
 		Store = NewObject<UGCBStructRefItemStore>(this);
 	}
+	else if (Settings.Config == EGCBConfig::S0)
+	{
+		Store = NewObject<UGCBStructItemStore>(this);
+	}
 	else
 	{
 		UGCBObjectItemStore* ObjectStore = NewObject<UGCBObjectItemStore>(this);
@@ -266,6 +271,9 @@ void UGCBBenchmarkSubsystem::CreateWorkload()
 	Store->Populate(Settings.Items, static_cast<uint32>(Settings.Seed), Definitions);
 	Totals.PopulateMs = (FPlatformTime::Seconds() - Start) * 1000.0;
 	UE_LOG(LogGCBBench, Display, TEXT("Populated %d items in %.1f ms"), Store->Num(), Totals.PopulateMs);
+	// The element sizes 04 section 30 states, read from the compiler rather than assumed.
+	UE_LOG(LogGCBBench, Display, TEXT("Struct element sizes: S1 (FGCBItemDataRef) %d bytes, S0 (FGCBItemData) %d bytes"),
+		static_cast<int32>(sizeof(FGCBItemDataRef)), static_cast<int32>(sizeof(FGCBItemData)));
 }
 
 void UGCBBenchmarkSubsystem::OnWorldBeginPlay(UWorld& InWorld)

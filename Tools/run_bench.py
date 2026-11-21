@@ -82,6 +82,7 @@ CONFIGS = {
     "U1": "-GCBConfig=U1",        # U0 + every page a GC cluster, rebuilt before each cycle
     "U2": "-GCBConfig=U2",        # U0 + incremental reachability (Experimental), 2 ms slices
     "S1": "-GCBConfig=S1",        # structs in one array, each still holding a TObjectPtr to its definition
+    "S0": "-GCBConfig=S0",        # the proposed store: structs in one array, the definition by index
 }
 
 UPDATE_NS = "GCBWorkload/UpdateNsPerItem"

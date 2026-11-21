@@ -10,6 +10,7 @@
 | D | Phase 5, S3 (handles + tests, plugin) | `GCBudgetHandle.h/.cpp`, `Private/Tests/GCBudgetHandleTests.cpp`, `Tools\run_tests.bat` |
 | E | Phase 5, S4 (workload + UObject stores, game) | `GCBItemDef.h`, `GCBWorkload.h/.cpp`, `GCBItemObject.h`, `GCBItemStore.h/.cpp`, `GCBObjectItemStore.h/.cpp`, the director's S4 changes, `Tools\run_bench.py`'s S4 changes |
 | F | Phase 5, S5 (struct store with references, game) | `GCBStructItemStores.h/.cpp`, the director's S5 changes, `GCBudget.Build.cs` (the plugin becomes public), `Tools\run_bench.py`'s S5 change |
+| G | Phase 5, S7 (the proposed store, game) | `GCBStructItemStores.h` (S0's element and store), the director's and `Tools\run_bench.py`'s S7 changes |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -534,3 +535,20 @@ Runs `UnrealEditor-Cmd <project> -ExecCmds="Automation RunTests GCBudget;Quit" -
 ### F4. `Tools\run_bench.py` change in S5
 
 `CONFIGS` gains `S1`.
+
+## Part G · Step S7: the proposed store (configuration S0)
+
+### G1. `GCBStructItemStores.h` changes in S7
+
+| Line(s) | What it does, and why |
+|---|---|
+| `USTRUCT() struct FGCBItemData` | S0's element: `DefIndex`, `TicksLeft`, `Magnitude`, `Charges`, `Serial`, five `int32` fields. **No field is an object reference**, so a `UPROPERTY` array of these adds nothing to the class's GC schema, and the collector never looks inside it (`GarbageCollection.cpp:6869–6872`; `01b` #5). 20 bytes per item, against 24 for S1's element (`04` §30) |
+| `GetDef(const FGCBItemData&, Defs)` / `SetDef(FGCBItemData&, Def)` | The definition by index: `Defs[Item.DefIndex]` on read, `Def->Index` on write. They sit next to S1's pair, above the templates (`04` §29) |
+| `UCLASS() class UGCBStructItemStore` | Configuration S0. The same four one-line overrides as S1's store, over its own `UPROPERTY() TArray<FGCBItemData> Items`. All the logic is the shared templates', so S0 and S1 differ **only** in the element type |
+
+### G2. Director and runner changes in S7
+
+| Change | Why |
+|---|---|
+| `EGCBConfig::S0`, one more row in `ParseConfig`'s table; `CreateWorkload()` creates a `UGCBStructItemStore` for S0 | The configuration this step adds |
+| `Tools\run_bench.py`: `CONFIGS` gains `S0` | So batches can include it |

@@ -258,3 +258,24 @@ U1's cluster rebuild, per request frame (`check_batch.py`, the per-run median an
 2. **A percentile of a sparse column is 0.** The first summaries showed "Cluster ms p95" = 0.000 everywhere, because `ClusterMs` is non-zero on one frame in 120. The column is now the maximum (U1 at 100,000: 1,466.6 [1,458.6–1,544.9] ms). The rewritten summaries come from the same re-analysis; no run was repeated.
 
 **Audit trail (S6, tools only):** the three fixes above: the hitch rule in `csv_stats.py` (its self-test now places the long frame's duration in the next row, and fails under the old rule); the summary's cluster column, `--resummarize` and `--reanalyse` in `run_bench.py`; request-frame `ClusterMs` and GameThreadTime in `check_batch.py`. Checked with a structured self-review, the self-test, and by rerunning the tools on the recorded batches.
+
+### S7 · The proposed store, configuration S0 (2026-11-21)
+
+| Queue job | What changed before it | Outcome |
+|---|---|---|
+| 12 · `20261121_070422_a60ec2` | S0 in the tree (after the S6 commit) | ✅ every step. **The committed state of S7** |
+
+| # | Check | Command | Result (job 12) |
+|---|---|---|---|
+| S7-1 | Editor target builds | `Tools\build.bat GCBudgetEditor Development` | ✅ 6 actions, 8.47 s, **0 errors, 0 warnings** |
+| S7-2 | Game target builds | `Tools\build.bat GCBudget Development` | ✅ 5 actions, 15.42 s, **0 errors, 0 warnings** |
+| S7-3 | The handle tests still pass | `Tools\run_tests.bat GCBudget` | ✅ 6 of 6 `Result={Success}`, "TEST COMPLETE. EXIT CODE: 0" |
+| S7-4 | Package | `Tools\package.bat Development` | ✅ BUILD SUCCESSFUL, BuildCookRun 58.97 s, cook "0 error(s), 0 warning(s)" |
+| S7-5 | S0's checksum equals U0's (SC7), and S1's | `python -I -u Tools\run_bench.py --configs E0,U0,S1,S0 --items 10000,100000 --runs 2 --warmup 5 --capture 20 --label s7check` | ✅ all 15 runs exit 0. **S0 = S1 = U0** = 0x83C178D5 at 10,000 and 0xBD626A07 at 100,000 (the same values as S4's U runs), with identical expiry counts (2,733 and 27,389) |
+| S7-6 | UObject count = E0 + store; probe errors 0 | `python -I Tools\check_batch.py 2026-11-21_082841_s7check`, and the run reports | ✅ "all runs pass". S0 at 10,000 and at 100,000: **35,537, constant** = E0 of this build (35,536) + 1 store, the same as S1. U0: post-cycle minimum 45,547 at 10,000 = E0 + 10,000 + 10 pages + 1 store. Probe errors 0 in every run. E0 rose by 3 from S5, which matches one new class × (class object + default object) plus S0's struct type **[inferred]** |
+| S7-7 | The element sizes `04` §30 states | the director's log line, every item run | ✅ "Struct element sizes: S1 (FGCBItemDataRef) 24 bytes, S0 (FGCBItemData) 20 bytes" |
+| S7-8 | A short S0 vs U0 sanity batch | the same batch | ✅ S0 runs like the others and is never slower. 20 s captures, 2 runs, so these are **checks, not results**: the median cycle pause per run at 100,000 was S0 0.74–0.81 ms, S1 1.55–1.69, U0 3.08–3.10, and E0 0.80–0.89 with no items at all. At 10 cycles per capture the p95 is set by the occasional slow cycle (2.5–2.9 ms in E0, S0 and S1 alike, as in S1) |
+
+**Audit trail (S7 code):** a structured self-review of the change (S0's element, its two definition accessors declared before the templates that call them, its store, the director's and the runner's S0 entries, the element-size log line) found nothing to change. The shared struct-store code it relies on was reviewed in S5.
+
+**Phase 5 is complete:** all seven steps compiled with 0 warnings through the queue, and each passed its checks. The baselines (S6) were recorded before S0 existed. The headline and curve batches with all six configurations, and the Shipping cross-check, are Phase 8's (`03`).

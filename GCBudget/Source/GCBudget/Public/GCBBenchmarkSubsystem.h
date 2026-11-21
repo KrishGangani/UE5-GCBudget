@@ -17,6 +17,7 @@ enum class EGCBConfig : uint8
 	U1,     // U0 + every page a GC cluster, rebuilt before each cycle
 	U2,     // U0 + incremental reachability (Experimental), 2 ms slices
 	S1,     // structs in one array, each still holding a TObjectPtr to its definition
+	S0,     // the proposed store: structs in one array, the definition by index (no per-item reference)
 };
 
 /**
@@ -41,7 +42,7 @@ enum class EGCBConfig : uint8
  *   a few frames later   with -GCBExit the game quits, after the CSV profiler has written its file
  *
  * Command line (all optional):
- *   -GCBConfig=NAME   E0, U0, U1, U2, S1; absent = no benchmark
+ *   -GCBConfig=NAME   E0, U0, U1, U2, S1, S0; absent = no benchmark
  *   -GCBItems=N       items in the store (default 0; E0 requires 0, the others at least 1)
  *   -GCBSeed=S        workload seed (default 1)
  *   -GCBGCFrames=F    frames between director-requested GC cycles (default 120 = 2 s at 60 Hz; 0 = engine default timer)

@@ -1,6 +1,6 @@
 # 04 · C++ Fundamentals: GCBudget
 
-**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S5. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
+**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S7. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
 
 ---
 
@@ -203,3 +203,11 @@ S1 needs no lambdas. They arrive in S4 (the probe loop): §23.
 - A template is checked twice: once where it is defined, and again for each type it is instantiated with.
 - A **qualified** call such as `GCBStructItem::GetDef(Item, Defs)` is looked up where the template is **defined**. An overload declared after the template, for a new element type, would not be found.
 - That is why every element type's `GetDef`/`SetDef` pair sits above `UGCBStructItemStoreBase` in the header.
+
+## C++ added in step S7 (the proposed store)
+
+## 30. Struct size, alignment, and an index instead of a pointer
+
+- A struct's size is the sum of its fields plus any **padding** the compiler adds so each field sits at a multiple of its alignment. On 64-bit Windows a pointer is 8 bytes and 8-aligned; an `int32` is 4 bytes and 4-aligned.
+- S1's element (one `TObjectPtr` and four `int32`s) is therefore 24 bytes; S0's (five `int32`s) is 20 bytes. The director logs `sizeof` of both in every item run, and the packaged build reports exactly these values (`09` S7-7). At 100,000 items the arrays differ by about 0.4 MB.
+- The bigger difference is not the size. An `int32` index is just a number, so nothing in S0's array is a reference for the GC to follow. The price is an extra lookup (`Defs[DefIndex]`) and a rule: the definition table must not change order while items point into it. Here it is built once per run, in index order, and never changed.

@@ -35,11 +35,46 @@ struct FGCBItemDataRef
 	int32 Serial = 0;
 };
 
-/** How the shared struct-store code reads and writes an element's definition, per element type. */
+/**
+ * Configuration S0's element, the proposed design: the same fields, but the definition is an index into the store's
+ * definition table instead of a pointer. No field is an object reference, so the GC schema of an array of these is
+ * empty and the collector never looks inside it (01b_Research_Findings.md #5).
+ */
+USTRUCT()
+struct FGCBItemData
+{
+	GENERATED_BODY()
+
+	/** Position of the item's definition in the store's Defs (UGCBItemDef::Index). */
+	UPROPERTY()
+	int32 DefIndex = 0;
+
+	UPROPERTY()
+	int32 TicksLeft = 0;
+
+	/** Q16.16 fixed point. */
+	UPROPERTY()
+	int32 Magnitude = 0;
+
+	UPROPERTY()
+	int32 Charges = 0;
+
+	/** Run-unique id of this item (GCBWorkload::MakeSerial), checked by the lookup probe. */
+	UPROPERTY()
+	int32 Serial = 0;
+};
+
+/**
+ * How the shared struct-store code reads and writes an element's definition, per element type. Declared before the
+ * templates that call them: a qualified call is looked up where the template is defined.
+ */
 namespace GCBStructItem
 {
 	FORCEINLINE const UGCBItemDef* GetDef(const FGCBItemDataRef& Item, const TArray<TObjectPtr<UGCBItemDef>>& /*Defs*/) { return Item.Def; }
 	FORCEINLINE void SetDef(FGCBItemDataRef& Item, UGCBItemDef* Def) { Item.Def = Def; }
+
+	FORCEINLINE const UGCBItemDef* GetDef(const FGCBItemData& Item, const TArray<TObjectPtr<UGCBItemDef>>& Defs) { return Defs[Item.DefIndex]; }
+	FORCEINLINE void SetDef(FGCBItemData& Item, UGCBItemDef* Def) { Item.DefIndex = Def->Index; }
 }
 
 /**
@@ -171,4 +206,24 @@ private:
 	/** A UPROPERTY so the GC sees each element's definition reference: that is the cost S1 exists to measure. */
 	UPROPERTY()
 	TArray<FGCBItemDataRef> Items;
+};
+
+/** Configuration S0, the proposed store: structs in one array, the definition by index, nothing for the GC to trace. */
+UCLASS()
+class UGCBStructItemStore : public UGCBStructItemStoreBase
+{
+	GENERATED_BODY()
+
+public:
+	virtual int32 Update(int32 Ticks) override { return UpdateStructItems(Items, Ticks); }
+	virtual FGCBProbeResult RunProbe(int32 Lookups) override { return RunStructProbe(Items, Lookups); }
+	virtual uint32 Checksum() const override { return StructChecksum(Items); }
+
+protected:
+	virtual void PopulateItems() override { PopulateStructItems(Items); }
+
+private:
+	/** A UPROPERTY for reflection and saving. It holds no object reference, so the GC has nothing to trace in it. */
+	UPROPERTY()
+	TArray<FGCBItemData> Items;
 };

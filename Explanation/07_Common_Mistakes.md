@@ -1,6 +1,6 @@
 # 07 · Common Mistakes: GCBudget
 
-**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S5. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
+**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S7. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
 
 ---
 
@@ -80,3 +80,10 @@
 |---|---|---|---|
 | Assuming a struct array is invisible to the GC | If the element holds a `TObjectPtr`, the GC walks every element of a `UPROPERTY` array (`GarbageCollection.cpp:6874–6876`) | GC time that grows with N even though the UObject count doesn't | That is configuration S1's purpose: it keeps one reference per element on purpose, so the measurement separates objects from references (`05` F1) |
 | A public header that includes a header of a private dependency | By Epic's definition a private dependency is one "nothing in our public include files depend on" (`Programs/UnrealBuildTool/Configuration/Rules/ModuleRules.cs:1256–1270`). It compiles in this module, but a module that includes the header would not get the dependency's include path **[inferred]** | An include error in a module that only includes our header | The plugin became a public dependency in the step whose public header first includes it (`05` F3) |
+
+## 7. The proposed store (S7)
+
+| Mistake | Why it is wrong | How to spot it | Prevention in this project |
+|---|---|---|---|
+| Replacing an object reference with a raw pointer to "hide it from the GC" | The GC can't see it, so the object can be freed while the pointer remains | A crash or garbage values after a GC cycle | S0 stores an **index** into the definition table, which stays referenced through `UPROPERTY` arrays (`06` §27) |
+| An index into a table that can change order | Every stored index silently points at a different entry after a reorder or a removal | Items using the wrong definition; a checksum that no longer matches U0's | The definitions are created once per run, in index order, and never changed (`05` E1, G1) |

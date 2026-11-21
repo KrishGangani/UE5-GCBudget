@@ -2,7 +2,7 @@
 
 **Rule:** only APIs and macros the project **actually uses** are explained, each in the 8-point format: (1) what it is, (2) why it exists, (3) how it works, (4) when to use it, (5) when not to, (6) common mistakes, (7) a small example, (8) how it applies here. Engine facts cite UE 5.8.4 `File:line`, relative to `Engine/Source/` unless stated.
 
-**Current to:** Phase 5 step S5. Later steps add their APIs in the step that first uses each.
+**Current to:** Phase 5 step S7. Later steps add their APIs in the step that first uses each.
 
 ---
 
@@ -391,3 +391,16 @@
 6. **Common mistakes:** `check(DoSomething())`, whose call disappears in Test and Shipping.
 7. **Example:** `check(Handle.Index == Lane);`
 8. **Here:** the struct stores' "lane = slot" invariant, after populating and after every LIFO reuse.
+
+## API concept used from step S7
+
+## 27. How the GC sees a `UPROPERTY` struct array: the reference schema
+
+1. **What:** for every class, the engine builds a **schema**: the list of places in an object where an object reference can be (`Runtime/CoreUObject/Private/UObject/GarbageCollection.cpp:6869–6876`, `FArrayProperty::EmitReferenceInfo`).
+2. **Why:** during reachability analysis the GC visits only those places, not the whole object.
+3. **How:** an array property whose inner struct contains no strong references emits nothing, so the GC never visits its elements (`:6869–6872`). If the struct does contain one, the array becomes a struct-array member that the GC walks element by element (`:6874–6876`).
+4. **When:** this is the mechanism the whole project measures: S1 and S0 store the same items, and only the schema differs.
+5. **When not:** it is not a reason to hide references from the GC. A raw pointer outside `UPROPERTY` would also be invisible, and the object it points to could be freed.
+6. **Common mistakes:** replacing a `TObjectPtr` with a raw pointer "for speed", which leaves a dangling pointer once the object is collected. S0 stores an **index** into a table the GC still sees through the director's and the store's `UPROPERTY` arrays.
+7. **Example:** `USTRUCT() struct FNoRefs { GENERATED_BODY() UPROPERTY() int32 DefIndex = 0; };`: an array of these costs the GC nothing per element.
+8. **Here:** `FGCBItemData` (S0) against `FGCBItemDataRef` (S1).
