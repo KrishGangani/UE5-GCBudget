@@ -29,3 +29,6 @@ Benchmarks/*_console.txt
 
 # Work in progress staged outside the build (code for later steps, doc drafts). Never committed.
 _wip/
+
+# Portfolio export for Google Drive (not part of the repository).
+Portfolio/
