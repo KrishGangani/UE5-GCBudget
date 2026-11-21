@@ -310,8 +310,8 @@ Adapted from the reference project's script (P01's rules for reading a capture a
 | `cycle_pause_ms` | `CyclePauseMs` on cycle-start frames (M1) |
 | `cycle_total_ms`, `cycle_max_frame_ms`, `cycle_frames` | Per complete cycle: total GC work, the worst single frame, and how many frames it spread over. U2's whole point is the difference between "total" and "worst frame" |
 | `engine_gc_count`, `engine_gc_time_on_gc_frames_ms` | The engine's own columns, kept as cross-checks: the cycle count must equal ours, and the engine's partial GC time must stay below our bracket |
-| `spikes`, `hitches`, `minutes`, `…_per_min` | M3. Minutes = frames / 60 / 60, exact in a fixed-step run |
-| `selftest()` | Eight hand-made frames, where every expected value (floor 0.20, a partial first cycle, two complete cycles, one spike, one hitch) is worked out in the comments, plus a capture that ends mid-cycle |
+| `spikes`, `hitches`, `minutes`, `…_per_min` | M3. A hitch is a GC frame whose **own** duration exceeds 33.3 ms, and a frame's own duration is the **next** row's `FrameTime`: the CSV profiler measures FrameTime at the start of a frame, for the frame before it (`Runtime/Core/Private/ProfilingDebugging/CsvProfiler.cpp:150–155, 4369–4390`). The last row has no next row, so its frame can't count. *Corrected in S6:* the first version read the GC frame's own row (`09` S6). Minutes = frames / 60 / 60, exact in a fixed-step run |
+| `selftest()` | Eight hand-made frames, where every expected value (floor 0.20, a partial first cycle, two complete cycles, one spike, one hitch) is worked out in the comments, plus a capture that ends mid-cycle. The hitch's 40 ms sits in the row **after** its GC frame, so the test fails under the first, wrong rule |
 | `events_index(header)` / `frame_events(header, row, index)` | The EVENTS column is found once per capture, not once per frame (*clean-up pass*: the reference version lowercased the whole header on every frame) |
 
 ### C2. `run_bench.py`
@@ -352,6 +352,7 @@ Adapted from the reference project's runner. Unchanged parts: the batch name, in
 | `check_run(csv_path)` | For one run, from its capture: the frames with a cycle start, their spacing, the director's `GCTrigger` frames, the engine's `GC/Count` column, the `CyclePauseMs` values and the UObject range. From its run report: requests and cycles inside and outside the bracket. From its log: `gc.VerifyAssumptions`, the GC timer, and the error and warning lines (timestamped `Log…: Error:` / `Warning:` lines only, so a message that merely contains the word isn't counted). It returns the list of failed checks |
 | The checks | No frame with two cycle starts; starts exactly `gc_frames` apart and on the trigger frames (unless `gc_frames` is 0, the engine-timer diagnostic); the engine's count equals ours; a pause on every cycle frame and on no other; requests = cycles inside the bracket; both GC settings present in the log; no log errors. A missing report or log fails the run (*found in the self-review*: it raised a traceback) |
 | `main(argv)` | Runs every capture of the batch, priming included; exit code 0 if all pass, 1 if any fails, 2 for a usage error or an unknown batch |
+| Request frames *(S6)* | Per run, the median and maximum of `ClusterMs` and of GameThreadTime on the director's request frames, where U1's cluster rebuild runs: inside the director's tick, so outside the GC bracket. GameThreadTime, not FrameTime, because a row's FrameTime is the previous frame's duration (`09` S6) |
 | Reuse | Column names and the CSV parser come from `csv_stats.py`, so the two tools can't disagree about what a column means |
 
 
@@ -496,6 +497,7 @@ Runs `UnrealEditor-Cmd <project> -ExecCmds="Automation RunTests GCBudget;Quit" -
 | `SUMMARY_COLUMNS` and the summary gain `UpdateNsPerItem` (M6), `ProbeNsPerLookup` (M7), `ClusterMs` p95 and the probe errors | The per-item and per-lookup costs and U1's maintenance, next to the GC metrics |
 | `is_failure`: a probe error, or fewer cycles in the bracket than GC requests, fails the run | A lookup that finds the wrong item, or a request that started no cycle, would make the run's numbers meaningless |
 | `checksum_groups` / `checksum_mismatches`, and a "Checksums (SC7)" table in the summary | Every measured run with the same items, seed and frame count must report the same checksum, whatever its configuration. A mismatch fails the batch |
+| *(S6)* The summary's cluster column is the **maximum** of `ClusterMs`; `--resummarize BATCH` rewrites a batch's summary from its manifest, and with `--reanalyse` first recomputes every run's statistics from its raw CSV, so a corrected rule in `csv_stats.py` can be applied to recorded batches without running anything | `ClusterMs` is non-zero only on the request frames (1 in 120), so any percentile over all frames is 0; and the hitch rule was corrected after the baselines were recorded (*both found reading the baselines*, `09` S6) |
 | `--verify-gc` swaps `-NoVerifyGC` for `-VERIFYGC` | A diagnostic run with the engine's GC verification on (`Runtime/CoreUObject/Private/UObject/Obj.cpp:5915–5944`); never for timed runs. The environment record says which one a batch used |
 
 ## Part F · Step S5: the struct store that still holds references (configuration S1)

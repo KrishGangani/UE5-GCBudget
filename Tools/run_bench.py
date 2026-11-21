@@ -256,7 +256,7 @@ def write_summary(batch: str, environment: dict, records: list[dict]) -> str:
              "`Tools/csv_stats.py` (01b_Research_Findings.md section 4).", "",
              "| Config | N | Runs | Cycles | Cycle pause p95 / max (ms) | GC frame ms p95 / max | Spikes /min | Hitches /min | "
              "Floor (ms) | UObjects | PhysicalUsedMB | GameThreadTime median (ms) | Update ns/item | Probe ns/lookup | "
-             "Cluster ms p95 | Probe errors | Log errors |",
+             "Cluster ms max | Probe errors | Log errors |",
              "|" + "---|" * 17]
     for (config, items), group in sorted(groups.items(), key=lambda kv: (kv[0][1], kv[0][0])):
         gc = [g["gc"] for g in group]
@@ -276,7 +276,7 @@ def write_summary(batch: str, environment: dict, records: list[dict]) -> str:
             across_runs(stat("GameThreadTime", "median")),
             across_runs(stat(UPDATE_NS, "median"), 2),
             across_runs(stat(PROBE_NS, "median"), 2),
-            across_runs(stat(CLUSTER_MS, "p95")),
+            across_runs(stat(CLUSTER_MS, "max")),   # non-zero only on the 1-in-gc_frames request frames, so a percentile is 0
             str(sum(g.get("report", {}).get("probe_errors", 0) for g in group)),
             str(sum(g.get("log_errors", 0) for g in group)) + " |",
         ]))
@@ -313,7 +313,27 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--extra", default="", help="extra command-line arguments for every run (diagnostic batches)")
     parser.add_argument("--no-prime", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--resummarize", metavar="BATCH", help="rewrite BATCH's summary from its manifest; runs nothing")
+    parser.add_argument("--reanalyse", action="store_true",
+                        help="with --resummarize: first recompute every run's statistics from its raw CSV and rewrite the manifest")
     args = parser.parse_args(argv)
+
+    if args.resummarize:
+        manifest_path = os.path.join(RAW_DIR, args.resummarize + "_manifest.json")
+        with open(manifest_path, encoding="utf-8") as handle:
+            manifest = json.load(handle)
+        if args.reanalyse:
+            # After a change to csv_stats.py's rules: the raw captures are the record, the statistics are derived from them.
+            for record in manifest["runs"]:
+                if "capture" in record:
+                    analysis = csv_stats.analyse(os.path.join(RAW_DIR, record["capture"]), SUMMARY_COLUMNS)
+                    record.update(stats=analysis["columns"], gc=analysis["gc"], finalised=analysis["finalised"],
+                                  events=analysis["events"], frames=analysis["frames"])
+            manifest["reanalysed"] = dt.datetime.now().isoformat(timespec="seconds")
+            with open(manifest_path, "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle, indent=2)
+        print("summary:", write_summary(args.resummarize, manifest["environment"], manifest["runs"]))
+        return 0
 
     if not re.fullmatch(r"[A-Za-z0-9_-]*", args.label):
         parser.error("--label may contain only letters, digits, '_' and '-' (it becomes part of file names and -GCBRunTag)")

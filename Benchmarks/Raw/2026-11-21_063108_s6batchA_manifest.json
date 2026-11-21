@@ -1,0 +1,5833 @@
+{
+  "environment": {
+    "date": "2026-11-21T06:31:08",
+    "engine": "5.8.4 (CL 58902052)",
+    "build_config": "Development (packaged)",
+    "compiler": "MSVC 14.44.35229, Windows SDK 10.0.22621.0",
+    "cpu": "Intel(R) Core(TM) i7-14650HX",
+    "gpus": "Intel(R) UHD Graphics (driver 32.0.101.7088); NVIDIA GeForce RTX 5070 Laptop GPU (driver 32.0.16.1047)",
+    "ram_gb": "31.6",
+    "os": "Microsoft Windows 11 Home Single Language build 26200",
+    "power_plan": "Power Scheme GUID: 6fecc5ae-f350-48a5-b669-b472cb895ccf  (Turbo)",
+    "on_ac_power": true,
+    "resolution": "1280x720 windowed, default scalability",
+    "common_args": "-windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -traceautostart=0",
+    "traced": false,
+    "gc_verification": false,
+    "seed": 1,
+    "gc_cadence_frames": 120,
+    "extra_args": "",
+    "cpu_affinity": "0xFFFF (performance cores only; hybrid CPU)"
+  },
+  "runs": [
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N10000_r0_prime",
+      "config": "U0",
+      "items": 10000,
+      "run": 0,
+      "priming": true,
+      "exit_code": 0,
+      "wall_seconds": 20.2,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N10000_r0_prime -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N10000_r0_prime.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.461392861111111,
+          "min": 0.9824,
+          "median": 1.4139,
+          "p95": 1.8979899999999994,
+          "p99": 2.5118239999999994,
+          "max": 5.3081
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.1563935,
+          "min": 2.4442,
+          "median": 4.1284,
+          "p95": 4.779285,
+          "p99": 5.102923,
+          "max": 9.0718
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1294.7282927777778,
+          "min": 1253.7539,
+          "median": 1300.27925,
+          "p95": 1303.5977,
+          "p99": 1304.851678,
+          "max": 1305.2734
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.502958333333334,
+          "min": 6.11,
+          "median": 10.58,
+          "p95": 17.8205,
+          "p99": 29.94089999999998,
+          "max": 58.09
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 35.45141666666667,
+          "min": 16.1,
+          "median": 30.7,
+          "p95": 50.2,
+          "p99": 167.02399999999943,
+          "max": 384.0
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.4166666666666667e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029501,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5966345555555556,
+          "min": 0.171499,
+          "median": 0.370849,
+          "p95": 1.382439,
+          "p99": 1.4244169999999998,
+          "max": 1.516799
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.0864699999999998,
+          "min": 0.7365,
+          "median": 1.03965,
+          "p95": 1.3928749999999999,
+          "p99": 1.468053,
+          "max": 1.4983
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.7745694137931034,
+          "min": 1.3359969999999999,
+          "median": 1.7193969999999998,
+          "p95": 2.2547569999999997,
+          "p99": 2.545461,
+          "max": 2.6234970000000004
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.1265300344827585,
+          "min": 0.743899,
+          "median": 1.111299,
+          "p95": 1.4118789999999999,
+          "p99": 1.4877349999999998,
+          "max": 1.516799
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.35342111111111113,
+          "min": 0.1748,
+          "median": 0.3195,
+          "p95": 0.5753549999999998,
+          "p99": 1.1154149999999998,
+          "max": 1.228
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N10000_r0_prime",
+        "config": "U0",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 19.524,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N10000_r1",
+      "config": "U0",
+      "items": 10000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N10000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N10000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.3829903611111112,
+          "min": 1.039,
+          "median": 1.3468,
+          "p95": 1.7277199999999995,
+          "p99": 2.1464019999999997,
+          "max": 4.8384
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.566706083333333,
+          "min": 2.3202,
+          "median": 4.54385,
+          "p95": 5.194394999999999,
+          "p99": 5.459056999999999,
+          "max": 8.7391
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1285.03610725,
+          "min": 1247.6914,
+          "median": 1288.4102,
+          "p95": 1290.953295,
+          "p99": 1291.726639,
+          "max": 1292.2461
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.742877777777778,
+          "min": 5.94,
+          "median": 10.34,
+          "p95": 14.300499999999998,
+          "p99": 26.400499999999987,
+          "max": 43.91
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 32.157944444444446,
+          "min": 16.8,
+          "median": 30.0,
+          "p95": 43.30499999999997,
+          "p99": 62.12199999999948,
+          "max": 243.4
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.3055555555555556e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.027802,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5448713333333334,
+          "min": 0.16789800000000002,
+          "median": 0.381498,
+          "p95": 1.1852379999999998,
+          "p99": 1.279424,
+          "max": 1.311998
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.0015733333333334,
+          "min": 0.7254,
+          "median": 0.9793499999999999,
+          "p95": 1.257,
+          "p99": 1.290708,
+          "max": 1.3008
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.640449172413793,
+          "min": 1.147694,
+          "median": 1.6633939999999998,
+          "p95": 1.9514739999999997,
+          "p99": 2.0824899999999995,
+          "max": 2.130594
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.0123842068965516,
+          "min": 0.731298,
+          "median": 0.988498,
+          "p95": 1.2712779999999997,
+          "p99": 1.30175,
+          "max": 1.311998
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.3310122222222222,
+          "min": 0.1676,
+          "median": 0.31884999999999997,
+          "p95": 0.49479999999999996,
+          "p99": 0.717691,
+          "max": 0.8762
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N10000_r1",
+        "config": "U0",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 18.622,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N10000_r1",
+      "config": "U1",
+      "items": 10000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N10000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N10000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.6450196944444444,
+          "min": 1.0281,
+          "median": 1.4946000000000002,
+          "p95": 1.9167399999999999,
+          "p99": 2.5185929999999908,
+          "max": 21.0556
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.526997388888889,
+          "min": 1.6584,
+          "median": 4.4403500000000005,
+          "p95": 5.1440150000000004,
+          "p99": 5.748297999999986,
+          "max": 20.6641
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1287.9997541944444,
+          "min": 1245.543,
+          "median": 1288.5156,
+          "p95": 1291.85979,
+          "p99": 1292.445339,
+          "max": 1292.7734
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 12.598694444444446,
+          "min": 5.43,
+          "median": 11.54,
+          "p95": 22.810499999999998,
+          "p99": 32.11159999999996,
+          "max": 53.62
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 34.80988888888889,
+          "min": 14.3,
+          "median": 30.75,
+          "p95": 48.2,
+          "p99": 178.7,
+          "max": 480.3
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 0.12469227777777778,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 17.6745
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029698,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6518608888888888,
+          "min": 0.17380199999999998,
+          "median": 0.489652,
+          "p95": 1.406812,
+          "p99": 1.577951,
+          "max": 1.592102
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.1957033333333333,
+          "min": 0.8857,
+          "median": 1.2024499999999998,
+          "p95": 1.51884,
+          "p99": 1.559431,
+          "max": 1.5641
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.9625542758620689,
+          "min": 1.5893059999999999,
+          "median": 1.947106,
+          "p95": 2.2915059999999996,
+          "p99": 2.374338,
+          "max": 2.384306
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.2270157931034482,
+          "min": 0.912702,
+          "median": 1.221102,
+          "p95": 1.5513219999999999,
+          "p99": 1.58765,
+          "max": 1.592102
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.3690333333333333,
+          "min": 0.1692,
+          "median": 0.38285,
+          "p95": 0.57397,
+          "p99": 0.7327099999999998,
+          "max": 1.0985
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N10000_r1",
+        "config": "U1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 19.811,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 350,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N10000_r1",
+      "config": "U2",
+      "items": 10000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N10000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N10000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.406414111111111,
+          "min": 1.0263,
+          "median": 1.3729,
+          "p95": 1.7332,
+          "p99": 2.320743999999994,
+          "max": 5.3979
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.697669611111111,
+          "min": 2.5455,
+          "median": 4.691,
+          "p95": 5.313105,
+          "p99": 5.5912359999999985,
+          "max": 9.4928
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1285.7606550277778,
+          "min": 1244.7227,
+          "median": 1289.2695,
+          "p95": 1293.789295,
+          "p99": 1294.5703780000001,
+          "max": 1295.082
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.595519444444445,
+          "min": 6.27,
+          "median": 10.3,
+          "p95": 13.891499999999992,
+          "p99": 19.58089999999998,
+          "max": 43.71
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 32.10816666666666,
+          "min": 17.8,
+          "median": 30.2,
+          "p95": 42.70499999999998,
+          "p99": 55.701999999999956,
+          "max": 263.2
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.2777777777777777e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0002
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029251,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5913223333333334,
+          "min": 0.168249,
+          "median": 0.320349,
+          "p95": 1.324309,
+          "p99": 1.584339,
+          "max": 1.6012490000000001
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.1575766666666667,
+          "min": 0.8054,
+          "median": 1.1585,
+          "p95": 1.4988249999999996,
+          "p99": 1.578001,
+          "max": 1.5847
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.7564711379310345,
+          "min": 1.388247,
+          "median": 1.6790470000000002,
+          "p95": 2.1805269999999997,
+          "p99": 2.6176789999999994,
+          "max": 2.773247
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.1739834827586206,
+          "min": 0.809649,
+          "median": 1.1720490000000001,
+          "p95": 1.5270489999999999,
+          "p99": 1.5959290000000002,
+          "max": 1.6012490000000001
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.35017,
+          "min": 0.1687,
+          "median": 0.3042,
+          "p95": 0.5336249999999999,
+          "p99": 0.8815059999999996,
+          "max": 1.5709
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N10000_r1",
+        "config": "U2",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 14.837,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N10000_r1",
+      "config": "S1",
+      "items": 10000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N10000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N10000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.3692131388888888,
+          "min": 0.9507,
+          "median": 1.33805,
+          "p95": 1.7769349999999997,
+          "p99": 2.0838449999999966,
+          "max": 4.5947
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.725040305555556,
+          "min": 2.185,
+          "median": 4.7154,
+          "p95": 5.353905,
+          "p99": 5.628160999999999,
+          "max": 8.6135
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1287.5609586111111,
+          "min": 1246.0703,
+          "median": 1292.582,
+          "p95": 1295.531595,
+          "p99": 1296.2070780000001,
+          "max": 1297.2617
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 3.1475194444444443,
+          "min": 2.29,
+          "median": 2.72,
+          "p95": 4.71,
+          "p99": 13.677399999999825,
+          "max": 25.33
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 12.990416666666667,
+          "min": 7.6,
+          "median": 11.3,
+          "p95": 17.3,
+          "p99": 37.90199999999995,
+          "max": 227.7
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.0000000000000002e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0274,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.4136944777777778,
+          "min": 0.0,
+          "median": 0.2906,
+          "p95": 1.0204049999999998,
+          "p99": 1.1285769999999997,
+          "max": 1.2983
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 0.86636,
+          "min": 0.6417,
+          "median": 0.88285,
+          "p95": 1.0667149999999999,
+          "p99": 1.219872,
+          "max": 1.273
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.2449138620689655,
+          "min": 0.8673980000000001,
+          "median": 1.205101,
+          "p95": 1.7032395999999999,
+          "p99": 1.73372872,
+          "max": 1.738601
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 0.8756275862068965,
+          "min": 0.652,
+          "median": 0.8846,
+          "p95": 1.0841199999999998,
+          "p99": 1.2449039999999998,
+          "max": 1.2983
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.19655777777777778,
+          "min": 0.0019,
+          "median": 0.21925,
+          "p95": 0.5535199999999993,
+          "p99": 0.7211139999999999,
+          "max": 0.79
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N10000_r1",
+        "config": "S1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 0.6,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N100000_r1",
+      "config": "U0",
+      "items": 100000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N100000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N100000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.4361283055555556,
+          "min": 1.7806,
+          "median": 2.36415,
+          "p95": 2.9297599999999995,
+          "p99": 4.924927999999997,
+          "max": 8.304
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.792670972222222,
+          "min": 2.3659,
+          "median": 4.77355,
+          "p95": 5.447785,
+          "p99": 5.806862999999998,
+          "max": 8.9221
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1311.6939653888887,
+          "min": 1268.7734,
+          "median": 1316.5117,
+          "p95": 1319.304895,
+          "p99": 1319.8948910000001,
+          "max": 1321.168
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136722.76666666666,
+          "min": 135641.0,
+          "median": 136724.0,
+          "p95": 137698.05,
+          "p99": 137819.01,
+          "max": 137911.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.349385,
+          "min": 6.367,
+          "median": 10.083,
+          "p95": 13.3181,
+          "p99": 15.28702,
+          "max": 24.087
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 41.846555555555554,
+          "min": 28.7,
+          "median": 40.4,
+          "p95": 52.90499999999997,
+          "p99": 68.10199999999995,
+          "max": 180.8
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.2777777777777777e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0004
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0311505,
+        "floor_samples": 3490,
+        "gc_frames": 110,
+        "gc_frame_ms": {
+          "n": 110,
+          "mean": 1.6156176,
+          "min": 0.007048499999999996,
+          "median": 1.9271995,
+          "p95": 3.7130045,
+          "p99": 4.949393499999998,
+          "max": 5.5067495
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.36962,
+          "min": 2.6985,
+          "median": 3.33795,
+          "p95": 4.701209999999998,
+          "p99": 5.337432,
+          "max": 5.4822
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.933720258620689,
+          "min": 4.970848500000001,
+          "median": 5.677097,
+          "p95": 7.703997999999999,
+          "p99": 8.824093999999999,
+          "max": 9.154997999999999
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.3859184655172414,
+          "min": 2.7102495,
+          "median": 3.3510495000000002,
+          "p95": 4.757689499999999,
+          "p99": 5.366273499999999,
+          "max": 5.5067495
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.689655172413793,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 110,
+          "mean": 1.3470454545454547,
+          "min": 0.0064,
+          "median": 1.9191500000000001,
+          "p95": 2.633095,
+          "p99": 3.816398999999997,
+          "max": 4.1108
+        },
+        "spikes": 2,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 2.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N100000_r1",
+        "config": "U0",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 210.96,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N100000_r1",
+      "config": "U1",
+      "items": 100000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 68.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N100000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N100000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 13.963341833333333,
+          "min": 1.7096,
+          "median": 2.3611500000000003,
+          "p95": 3.024235,
+          "p99": 4.811144999999996,
+          "max": 1550.0992
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 15.575277722222221,
+          "min": 2.0823,
+          "median": 4.0808,
+          "p95": 4.776415,
+          "p99": 5.715603999999995,
+          "max": 1550.3704
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1308.8898411388889,
+          "min": 1277.1523,
+          "median": 1319.7383,
+          "p95": 1322.3672,
+          "p99": 1323.0742,
+          "max": 1323.875
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136728.24083333334,
+          "min": 135644.0,
+          "median": 136728.0,
+          "p95": 137701.05,
+          "p99": 137821.0,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.387016666666668,
+          "min": 6.442,
+          "median": 9.996,
+          "p95": 13.086749999999997,
+          "p99": 17.597679999999915,
+          "max": 34.031
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 41.28541666666667,
+          "min": 29.1,
+          "median": 39.6,
+          "p95": 50.8,
+          "p99": 70.10199999999995,
+          "max": 467.5
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 11.524934499999999,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 1544.8763
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029203,
+        "floor_samples": 3486,
+        "gc_frames": 114,
+        "gc_frame_ms": {
+          "n": 114,
+          "mean": 1.4960083859649125,
+          "min": 0.003694999999999997,
+          "median": 1.9427469999999998,
+          "p95": 3.015022,
+          "p99": 3.205091,
+          "max": 3.3083970000000003
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 2.870636666666667,
+          "min": 2.5457,
+          "median": 2.872,
+          "p95": 3.15942,
+          "p99": 3.2447290000000004,
+          "max": 3.2795
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.688002344827586,
+          "min": 4.779491,
+          "median": 5.645188000000001,
+          "p95": 6.4370080000000005,
+          "p99": 6.966975999999999,
+          "max": 7.171488
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 2.9134659655172417,
+          "min": 2.574297,
+          "median": 2.915597,
+          "p95": 3.198017,
+          "p99": 3.280425,
+          "max": 3.3083970000000003
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.793103448275862,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 114,
+          "mean": 1.1407456140350876,
+          "min": 0.0054,
+          "median": 1.4892500000000002,
+          "p95": 2.0138399999999996,
+          "p99": 2.0455829999999997,
+          "max": 2.0583
+        },
+        "spikes": 0,
+        "hitches": 29,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 29.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N100000_r1",
+        "config": "U1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 212.274,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 3430,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N100000_r1",
+      "config": "U2",
+      "items": 100000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 21.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N100000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N100000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.4298612777777775,
+          "min": 1.7653,
+          "median": 2.3390500000000003,
+          "p95": 2.945154999999999,
+          "p99": 4.956276999999998,
+          "max": 8.0031
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.401390388888889,
+          "min": 2.0823,
+          "median": 4.3838,
+          "p95": 5.046645,
+          "p99": 5.382407,
+          "max": 12.4333
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1312.2237984722221,
+          "min": 1286.0586,
+          "median": 1314.8008,
+          "p95": 1317.3789,
+          "p99": 1318.074396,
+          "max": 1318.9727
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136742.3775,
+          "min": 135657.0,
+          "median": 136742.0,
+          "p95": 137716.05,
+          "p99": 137834.03,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.189986388888888,
+          "min": 6.726,
+          "median": 9.8905,
+          "p95": 13.024499999999996,
+          "p99": 14.894359999999992,
+          "max": 26.756
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 41.67538888888889,
+          "min": 30.1,
+          "median": 39.8,
+          "p95": 54.014999999999915,
+          "p99": 68.40099999999998,
+          "max": 186.3
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.2222222222222223e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.030499,
+        "floor_samples": 3454,
+        "gc_frames": 146,
+        "gc_frame_ms": {
+          "n": 146,
+          "mean": 1.7015153493150685,
+          "min": 0.004400000000000001,
+          "median": 2.0121010000000004,
+          "p95": 3.3505510000000003,
+          "p99": 5.1320760000000005,
+          "max": 5.502301
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.3821933333333334,
+          "min": 2.6002,
+          "median": 3.1558,
+          "p95": 5.1193349999999995,
+          "p99": 5.378099000000001,
+          "max": 5.4787
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 8.270594344827586,
+          "min": 6.1387030000000005,
+          "median": 8.094605000000001,
+          "p95": 10.3811846,
+          "p99": 11.962369719999998,
+          "max": 12.517106
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.3974044482758625,
+          "min": 2.615501,
+          "median": 3.154601,
+          "p95": 5.133501,
+          "p99": 5.402228999999999,
+          "max": 5.502301
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 4.862068965517241,
+          "min": 4.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "p99": 5.719999999999999,
+          "max": 6.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 146,
+          "mean": 1.4574527397260275,
+          "min": 0.0034,
+          "median": 1.1616499999999998,
+          "p95": 3.270625,
+          "p99": 5.0627450000000005,
+          "max": 5.4084
+        },
+        "spikes": 3,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 3.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "GC": 61,
+        "PSO": 2,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N100000_r1",
+        "config": "U2",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 189.752,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N100000_r1",
+      "config": "S1",
+      "items": 100000,
+      "run": 1,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N100000_r1 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N100000_r1.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.636449638888889,
+          "min": 1.1772,
+          "median": 1.60255,
+          "p95": 2.027729999999999,
+          "p99": 2.672649999999987,
+          "max": 5.6467
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.6288975,
+          "min": 1.932,
+          "median": 4.62565,
+          "p95": 5.26701,
+          "p99": 5.553701999999998,
+          "max": 9.0997
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1274.239004888889,
+          "min": 1259.5859,
+          "median": 1277.6464500000002,
+          "p95": 1281.375,
+          "p99": 1282.179739,
+          "max": 1282.5469
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 2.8961230555555555,
+          "min": 2.209,
+          "median": 2.6585,
+          "p95": 4.517,
+          "p99": 5.2130399999999995,
+          "max": 7.754
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 38.266638888888885,
+          "min": 25.8,
+          "median": 33.6,
+          "p95": 51.80499999999997,
+          "p99": 181.7,
+          "max": 320.7
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.2222222222222223e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.030998,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6753696222222222,
+          "min": 0.0,
+          "median": 0.33960199999999996,
+          "p95": 1.8744919999999998,
+          "p99": 2.151692,
+          "max": 2.400002
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.6274033333333333,
+          "min": 1.1985,
+          "median": 1.59795,
+          "p95": 2.0167399999999995,
+          "p99": 2.2931600000000003,
+          "max": 2.3732
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 2.022270965517241,
+          "min": 1.4780039999999999,
+          "median": 2.046709,
+          "p95": 2.4897051999999995,
+          "p99": 3.0062412799999993,
+          "max": 3.1837050000000002
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.6291261379310344,
+          "min": 1.204902,
+          "median": 1.593002,
+          "p95": 2.0428819999999996,
+          "p99": 2.321882,
+          "max": 2.400002
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.45623777777777774,
+          "min": 0.0018,
+          "median": 0.3325,
+          "p95": 1.143535,
+          "p99": 1.486341,
+          "max": 1.4891
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N100000_r1",
+        "config": "S1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 4.713,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N10000_r2",
+      "config": "U1",
+      "items": 10000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N10000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N10000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.59809725,
+          "min": 1.0272,
+          "median": 1.4392,
+          "p95": 1.8658149999999993,
+          "p99": 2.236139999999992,
+          "max": 20.8609
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.560320555555555,
+          "min": 1.7558,
+          "median": 4.461399999999999,
+          "p95": 5.16707,
+          "p99": 5.548843999999999,
+          "max": 20.98
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1287.3377225833335,
+          "min": 1251.5508,
+          "median": 1290.4062,
+          "p95": 1293.80899,
+          "p99": 1294.414607,
+          "max": 1295.2344
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.915747222222222,
+          "min": 5.76,
+          "median": 10.96,
+          "p95": 19.415499999999913,
+          "p99": 30.56039999999999,
+          "max": 46.96
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 33.85075,
+          "min": 15.2,
+          "median": 30.3,
+          "p95": 46.3,
+          "p99": 158.3219999999995,
+          "max": 378.7
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 0.12538625,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 18.5209
+        }
+      },
+      "gc": {
+        "floor_ms": 0.027902,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6479657777777778,
+          "min": 0.19649799999999998,
+          "median": 0.5210980000000001,
+          "p95": 1.3689779999999998,
+          "p99": 1.5268889999999997,
+          "max": 1.640898
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.1653533333333332,
+          "min": 0.8556,
+          "median": 1.1749,
+          "p95": 1.4577399999999998,
+          "p99": 1.5717180000000002,
+          "max": 1.6082
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.9429767586206896,
+          "min": 1.4880939999999998,
+          "median": 1.998894,
+          "p95": 2.3651739999999997,
+          "p99": 2.458782,
+          "max": 2.486894
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.203453172413793,
+          "min": 0.886398,
+          "median": 1.209898,
+          "p95": 1.4889579999999998,
+          "p99": 1.6050299999999997,
+          "max": 1.640898
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.37161444444444447,
+          "min": 0.1941,
+          "median": 0.37175,
+          "p95": 0.5918899999999999,
+          "p99": 0.725523,
+          "max": 0.7338
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N10000_r2",
+        "config": "U1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 11.827,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 350,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N10000_r2",
+      "config": "U2",
+      "items": 10000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N10000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N10000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.4425848055555555,
+          "min": 1.0243,
+          "median": 1.4059,
+          "p95": 1.8303099999999999,
+          "p99": 2.2593499999999964,
+          "max": 4.6941
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.590856472222222,
+          "min": 2.1764,
+          "median": 4.5748999999999995,
+          "p95": 5.27877,
+          "p99": 5.529303,
+          "max": 8.8497
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1289.3340331944446,
+          "min": 1276.3789,
+          "median": 1289.6562,
+          "p95": 1292.98596,
+          "p99": 1294.156474,
+          "max": 1294.6445
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.174736111111113,
+          "min": 6.08,
+          "median": 10.31,
+          "p95": 16.470499999999998,
+          "p99": 29.750299999999992,
+          "max": 48.36
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 33.568083333333334,
+          "min": 17.1,
+          "median": 30.4,
+          "p95": 44.8,
+          "p99": 150.51899999999955,
+          "max": 257.4
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.361111111111111e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.028197,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5865807777777778,
+          "min": 0.176403,
+          "median": 0.344403,
+          "p95": 1.2854129999999997,
+          "p99": 1.409536,
+          "max": 1.507703
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.11181,
+          "min": 0.8393,
+          "median": 1.13315,
+          "p95": 1.3607049999999998,
+          "p99": 1.4669850000000002,
+          "max": 1.4999
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.7591434827586208,
+          "min": 1.393409,
+          "median": 1.735509,
+          "p95": 2.1872089999999997,
+          "p99": 2.379169,
+          "max": 2.4227090000000002
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.1142443793103447,
+          "min": 0.871703,
+          "median": 1.140903,
+          "p95": 1.3777629999999998,
+          "p99": 1.4768189999999999,
+          "max": 1.507703
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.35352666666666666,
+          "min": 0.178,
+          "median": 0.33405,
+          "p95": 0.559145,
+          "p99": 0.7447259999999998,
+          "max": 1.071
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N10000_r2",
+        "config": "U2",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 19.909,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N10000_r2",
+      "config": "S1",
+      "items": 10000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N10000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N10000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.3882524166666668,
+          "min": 0.9582,
+          "median": 1.3591,
+          "p95": 1.8153849999999994,
+          "p99": 2.0931299999999995,
+          "max": 4.9342
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.798316555555556,
+          "min": 2.177,
+          "median": 4.79035,
+          "p95": 5.481335,
+          "p99": 5.809949999999999,
+          "max": 9.5549
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1281.5186659722222,
+          "min": 1239.8125,
+          "median": 1282.9668000000001,
+          "p95": 1285.83239,
+          "p99": 1286.796939,
+          "max": 1287.4375
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 3.1878666666666664,
+          "min": 2.2,
+          "median": 2.74,
+          "p95": 4.750999999999994,
+          "p99": 14.726099999999857,
+          "max": 38.13
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 13.055888888888887,
+          "min": 7.3,
+          "median": 11.4,
+          "p95": 17.9,
+          "p99": 35.80499999999988,
+          "max": 177.7
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.138888888888889e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.027798,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.4262829888888889,
+          "min": 0.0,
+          "median": 0.373652,
+          "p95": 0.991047,
+          "p99": 1.183141,
+          "max": 1.276502
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 0.8536833333333332,
+          "min": 0.6047,
+          "median": 0.8567499999999999,
+          "p95": 1.1213449999999998,
+          "p99": 1.231846,
+          "max": 1.2645
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.2739263103448275,
+          "min": 0.9514090000000001,
+          "median": 1.3034059999999998,
+          "p95": 1.6991659999999995,
+          "p99": 1.80480688,
+          "max": 1.817408
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 0.8536537241379311,
+          "min": 0.607302,
+          "median": 0.853002,
+          "p95": 1.1421219999999999,
+          "p99": 1.2471299999999998,
+          "max": 1.276502
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.20623222222222223,
+          "min": 0.0018,
+          "median": 0.21184999999999998,
+          "p95": 0.5820849999999999,
+          "p99": 0.6868439999999999,
+          "max": 0.8207
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N10000_r2",
+        "config": "S1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 0.557,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N10000_r2",
+      "config": "U0",
+      "items": 10000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N10000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N10000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.3966390555555555,
+          "min": 1.0417,
+          "median": 1.3554,
+          "p95": 1.7378149999999999,
+          "p99": 2.275290999999998,
+          "max": 4.851
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.842485388888889,
+          "min": 2.4482,
+          "median": 4.8683499999999995,
+          "p95": 5.561305,
+          "p99": 5.833927999999999,
+          "max": 8.6904
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1275.7832860555557,
+          "min": 1266.7188,
+          "median": 1276.3008,
+          "p95": 1279.992395,
+          "p99": 1280.371139,
+          "max": 1280.6992
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.674025,
+          "min": 6.48,
+          "median": 10.21,
+          "p95": 14.35,
+          "p99": 27.2040999999999,
+          "max": 52.12
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 32.772444444444446,
+          "min": 20.6,
+          "median": 30.6,
+          "p95": 43.7,
+          "p99": 61.10099999999998,
+          "max": 341.7
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.4722222222222223e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0282,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5708255555555556,
+          "min": 0.177,
+          "median": 0.3903,
+          "p95": 1.202305,
+          "p99": 1.5137639999999999,
+          "max": 1.6672
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.0678933333333334,
+          "min": 0.8279,
+          "median": 1.0642,
+          "p95": 1.3644099999999992,
+          "p99": 1.588159,
+          "max": 1.6354
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.7184896551724138,
+          "min": 1.3082000000000003,
+          "median": 1.6576,
+          "p95": 2.335079999999999,
+          "p99": 2.5526959999999996,
+          "max": 2.5671999999999997
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.0842379310344827,
+          "min": 0.8326,
+          "median": 1.0768,
+          "p95": 1.3950399999999994,
+          "p99": 1.6189279999999997,
+          "max": 1.6672
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.33482,
+          "min": 0.1766,
+          "median": 0.32094999999999996,
+          "p95": 0.49322,
+          "p99": 0.6535579999999996,
+          "max": 1.2123
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N10000_r2",
+        "config": "U0",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 21.541,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N100000_r2",
+      "config": "U1",
+      "items": 100000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 68.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N100000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N100000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 13.916293,
+          "min": 1.7613,
+          "median": 2.3866,
+          "p95": 2.988325,
+          "p99": 4.719730999999997,
+          "max": 1463.9874
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 15.498033611111111,
+          "min": 2.0163,
+          "median": 4.0558,
+          "p95": 4.780025,
+          "p99": 5.619855999999989,
+          "max": 1464.1937
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1303.5017228333334,
+          "min": 1271.6328,
+          "median": 1312.8867,
+          "p95": 1317.1175899999998,
+          "p99": 1317.980539,
+          "max": 1319.6875
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136728.8161111111,
+          "min": 135643.0,
+          "median": 136728.5,
+          "p95": 137702.05,
+          "p99": 137819.01,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.268543888888889,
+          "min": 7.37,
+          "median": 11.1045,
+          "p95": 13.792649999999997,
+          "p99": 16.644869999999976,
+          "max": 33.876
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 44.79174999999999,
+          "min": 29.4,
+          "median": 43.2,
+          "p95": 55.4,
+          "p99": 74.20099999999998,
+          "max": 245.1
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 11.448718444444445,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 1458.5688
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0287,
+        "floor_samples": 3487,
+        "gc_frames": 113,
+        "gc_frame_ms": {
+          "n": 113,
+          "mean": 1.5551610088495575,
+          "min": 0.043597,
+          "median": 2.0069999999999997,
+          "p95": 2.9785399999999993,
+          "p99": 3.2228959999999995,
+          "max": 3.6382
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 2.87723,
+          "min": 2.5469,
+          "median": 2.8649500000000003,
+          "p95": 3.17871,
+          "p99": 3.4903850000000003,
+          "max": 3.6103
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.854661862068965,
+          "min": 4.9338,
+          "median": 5.712899999999999,
+          "p95": 6.83564,
+          "p99": 7.591895999999998,
+          "max": 7.8675
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 2.9024137931034484,
+          "min": 2.5744,
+          "median": 2.8874999999999997,
+          "p95": 3.2098199999999997,
+          "p99": 3.5234839999999994,
+          "max": 3.6382
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.7586206896551726,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 113,
+          "mean": 1.185642477876106,
+          "min": 0.0384,
+          "median": 1.5154,
+          "p95": 2.018,
+          "p99": 2.045012,
+          "max": 2.1234
+        },
+        "spikes": 0,
+        "hitches": 29,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 29.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N100000_r2",
+        "config": "U1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 208.877,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 3430,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N100000_r2",
+      "config": "U2",
+      "items": 100000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 21.2,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N100000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N100000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.4538006666666665,
+          "min": 1.7753,
+          "median": 2.3797,
+          "p95": 2.920764999999999,
+          "p99": 5.274666999999984,
+          "max": 7.7872
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.19416975,
+          "min": 2.0229,
+          "median": 4.1572,
+          "p95": 4.8612649999999995,
+          "p99": 5.455335,
+          "max": 10.5661
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1306.6899725833334,
+          "min": 1268.9727,
+          "median": 1307.93165,
+          "p95": 1314.832,
+          "p99": 1315.3829170000001,
+          "max": 1315.9375
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136742.06,
+          "min": 135657.0,
+          "median": 136742.0,
+          "p95": 137716.05,
+          "p99": 137833.01,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.36986361111111,
+          "min": 6.688,
+          "median": 10.182,
+          "p95": 12.822149999999999,
+          "p99": 14.60545999999999,
+          "max": 30.049
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 43.01286111111111,
+          "min": 32.2,
+          "median": 41.4,
+          "p95": 51.8,
+          "p99": 70.8,
+          "max": 390.8
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.1666666666666666e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029199,
+        "floor_samples": 3459,
+        "gc_frames": 141,
+        "gc_frame_ms": {
+          "n": 141,
+          "mean": 1.7573535177304964,
+          "min": 0.012003000000000003,
+          "median": 2.007701,
+          "p95": 4.4214009999999995,
+          "p99": 4.6800809999999995,
+          "max": 4.776600999999999
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.50966,
+          "min": 2.5557,
+          "median": 3.22145,
+          "p95": 4.660085,
+          "p99": 4.751593,
+          "max": 4.7598
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 8.264739379310344,
+          "min": 5.810606999999999,
+          "median": 8.132205,
+          "p95": 9.973044999999999,
+          "p99": 10.06521228,
+          "max": 10.076104
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.540069965517241,
+          "min": 2.5739009999999998,
+          "median": 3.2332009999999998,
+          "p95": 4.6800809999999995,
+          "p99": 4.767753,
+          "max": 4.776600999999999
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 4.724137931034483,
+          "min": 4.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "p99": 5.0,
+          "max": 5.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 141,
+          "mean": 1.5119886524822697,
+          "min": 0.006,
+          "median": 1.2952,
+          "p95": 4.3511,
+          "p99": 4.612139999999998,
+          "max": 4.6997
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "GC": 60,
+        "PSO": 2,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N100000_r2",
+        "config": "U2",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 171.559,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N100000_r2",
+      "config": "S1",
+      "items": 100000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N100000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N100000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.607494861111111,
+          "min": 1.1719,
+          "median": 1.58775,
+          "p95": 1.9601549999999996,
+          "p99": 2.2992119999999976,
+          "max": 5.0991
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.612914111111111,
+          "min": 2.5355,
+          "median": 4.6085,
+          "p95": 5.251424999999999,
+          "p99": 5.5651629999999965,
+          "max": 9.0542
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1271.712350277778,
+          "min": 1248.2734,
+          "median": 1273.8477,
+          "p95": 1276.2773,
+          "p99": 1276.7227,
+          "max": 1277.3984
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 2.7953591666666666,
+          "min": 2.175,
+          "median": 2.5255,
+          "p95": 4.3311,
+          "p99": 5.1021699999999965,
+          "max": 6.565
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 35.86016666666667,
+          "min": 25.2,
+          "median": 31.7,
+          "p95": 49.0,
+          "p99": 174.80199999999996,
+          "max": 374.1
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.138888888888889e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.028901,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6173446888888889,
+          "min": 0.0,
+          "median": 0.289549,
+          "p95": 1.8152939999999997,
+          "p99": 2.101861,
+          "max": 2.1144990000000004
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.54432,
+          "min": 1.1649,
+          "median": 1.4905,
+          "p95": 2.0153600000000003,
+          "p99": 2.065128,
+          "max": 2.0845
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.8459732413793102,
+          "min": 1.4337969999999998,
+          "median": 1.807798,
+          "p95": 2.3240355999999998,
+          "p99": 2.36307744,
+          "max": 2.366998
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.5485093448275862,
+          "min": 1.1714989999999998,
+          "median": 1.494599,
+          "p95": 2.072339,
+          "p99": 2.110523,
+          "max": 2.1144990000000004
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.41312888888888893,
+          "min": 0.002,
+          "median": 0.28154999999999997,
+          "p95": 1.156035,
+          "p99": 1.270777,
+          "max": 1.2803
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N100000_r2",
+        "config": "S1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 3.404,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N100000_r2",
+      "config": "U0",
+      "items": 100000,
+      "run": 2,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N100000_r2 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N100000_r2.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.443209,
+          "min": 1.8061,
+          "median": 2.36515,
+          "p95": 2.9943549999999997,
+          "p99": 4.8611209999999945,
+          "max": 7.9205
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.728824305555556,
+          "min": 2.8638,
+          "median": 4.7187,
+          "p95": 5.396774999999999,
+          "p99": 5.690608,
+          "max": 9.2317
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1310.7396004722223,
+          "min": 1291.7461,
+          "median": 1312.8281000000002,
+          "p95": 1316.2425899999998,
+          "p99": 1316.793078,
+          "max": 1317.4102
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136720.95027777777,
+          "min": 135641.0,
+          "median": 136719.5,
+          "p95": 137693.05,
+          "p99": 137813.0,
+          "max": 137894.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.507278055555556,
+          "min": 7.001,
+          "median": 10.243,
+          "p95": 13.59815,
+          "p99": 15.75843999999999,
+          "max": 20.474
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 42.81241666666667,
+          "min": 32.1,
+          "median": 41.7,
+          "p95": 51.7,
+          "p99": 65.80199999999995,
+          "max": 264.8
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.1666666666666666e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0306,
+        "floor_samples": 3492,
+        "gc_frames": 108,
+        "gc_frame_ms": {
+          "n": 108,
+          "mean": 1.634360222222222,
+          "min": 0.005800000000000003,
+          "median": 1.9499,
+          "p95": 3.9022899999999994,
+          "p99": 4.334204,
+          "max": 4.8522
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.3527566666666666,
+          "min": 2.747,
+          "median": 3.2037,
+          "p95": 4.30218,
+          "p99": 4.6763200000000005,
+          "max": 4.8248
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.8922173793103445,
+          "min": 4.9176,
+          "median": 5.7009,
+          "p95": 7.12892,
+          "p99": 7.2892079999999995,
+          "max": 7.3393
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.3903793103448274,
+          "min": 2.7573,
+          "median": 3.2283,
+          "p95": 4.3266800000000005,
+          "p99": 4.707608,
+          "max": 4.8522
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.6206896551724137,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 108,
+          "mean": 1.349911111111111,
+          "min": 0.0077,
+          "median": 1.94045,
+          "p95": 2.757255,
+          "p99": 2.999081999999999,
+          "max": 3.401
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N100000_r2",
+        "config": "U0",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 189.089,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N10000_r3",
+      "config": "U2",
+      "items": 10000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N10000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N10000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.4671021388888887,
+          "min": 1.0293,
+          "median": 1.4335,
+          "p95": 1.8494149999999998,
+          "p99": 2.2516659999999984,
+          "max": 4.7295
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.6556867777777775,
+          "min": 2.3763,
+          "median": 4.6318,
+          "p95": 5.312905,
+          "p99": 5.578956999999999,
+          "max": 9.3021
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1282.7650030277778,
+          "min": 1242.375,
+          "median": 1290.59965,
+          "p95": 1292.918585,
+          "p99": 1294.504056,
+          "max": 1295.2266
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.639013888888888,
+          "min": 5.93,
+          "median": 10.39,
+          "p95": 23.16,
+          "p99": 30.960699999999985,
+          "max": 49.33
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 34.27488888888889,
+          "min": 17.3,
+          "median": 30.3,
+          "p95": 47.004999999999974,
+          "p99": 169.14299999999898,
+          "max": 366.8
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.3333333333333334e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.028297,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5796641111111112,
+          "min": 0.165603,
+          "median": 0.330353,
+          "p95": 1.316078,
+          "p99": 1.431742,
+          "max": 1.489503
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.1379533333333332,
+          "min": 0.8591,
+          "median": 1.1333000000000002,
+          "p95": 1.3839249999999998,
+          "p99": 1.4541250000000001,
+          "max": 1.4737
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.7520227931034482,
+          "min": 1.3721089999999998,
+          "median": 1.6807089999999998,
+          "p95": 2.1793289999999996,
+          "p99": 2.474601,
+          "max": 2.559609
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.1556167931034482,
+          "min": 0.866203,
+          "median": 1.143503,
+          "p95": 1.404243,
+          "p99": 1.471331,
+          "max": 1.489503
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.3458644444444445,
+          "min": 0.1679,
+          "median": 0.3093,
+          "p95": 0.54753,
+          "p99": 0.6776899999999997,
+          "max": 1.0862
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N10000_r3",
+        "config": "U2",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 13.716,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N10000_r3",
+      "config": "S1",
+      "items": 10000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N10000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N10000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.2974353055555556,
+          "min": 0.9635,
+          "median": 1.2539,
+          "p95": 1.6529749999999996,
+          "p99": 2.0044109999999997,
+          "max": 4.9105
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.501215583333333,
+          "min": 2.2604,
+          "median": 4.46575,
+          "p95": 5.140814999999999,
+          "p99": 5.411239999999999,
+          "max": 8.7818
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1278.7062257777777,
+          "min": 1272.5938,
+          "median": 1278.7363500000001,
+          "p95": 1281.035395,
+          "p99": 1282.117317,
+          "max": 1282.7695
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 2.930902777777778,
+          "min": 2.27,
+          "median": 2.67,
+          "p95": 3.82,
+          "p99": 8.40039999999999,
+          "max": 22.11
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 11.881416666666667,
+          "min": 7.2,
+          "median": 10.8,
+          "p95": 15.6,
+          "p99": 32.90199999999995,
+          "max": 254.8
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.0833333333333335e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0268,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.41066896666666663,
+          "min": 0.0,
+          "median": 0.3019,
+          "p95": 1.0357850000000002,
+          "p99": 1.0737070000000002,
+          "max": 1.077
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 0.8507366666666666,
+          "min": 0.5819,
+          "median": 0.86415,
+          "p95": 1.0518599999999998,
+          "p99": 1.065967,
+          "max": 1.0682
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.237896724137931,
+          "min": 0.9135,
+          "median": 1.254401,
+          "p95": 1.6225587999999997,
+          "p99": 1.67275216,
+          "max": 1.678801
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 0.8778068965517241,
+          "min": 0.6500999999999999,
+          "median": 0.8874,
+          "p95": 1.06342,
+          "p99": 1.075964,
+          "max": 1.077
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.19574666666666668,
+          "min": 0.0017,
+          "median": 0.2128,
+          "p95": 0.47069499999999975,
+          "p99": 0.854947,
+          "max": 0.9063
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N10000_r3",
+        "config": "S1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 0.58,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N10000_r3",
+      "config": "U0",
+      "items": 10000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N10000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N10000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.4238005833333334,
+          "min": 1.0375,
+          "median": 1.3764500000000002,
+          "p95": 1.7926349999999998,
+          "p99": 2.1685739999999982,
+          "max": 4.785
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.71070375,
+          "min": 2.2999,
+          "median": 4.7102,
+          "p95": 5.414829999999999,
+          "p99": 5.79984,
+          "max": 8.7421
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1286.2919356388888,
+          "min": 1256.4883,
+          "median": 1288.7031,
+          "p95": 1290.9414,
+          "p99": 1291.461057,
+          "max": 1291.8945
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.086947222222223,
+          "min": 6.09,
+          "median": 10.3,
+          "p95": 15.89,
+          "p99": 29.240199999999994,
+          "max": 52.42
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 33.47613888888889,
+          "min": 16.3,
+          "median": 30.2,
+          "p95": 44.104999999999976,
+          "p99": 163.70999999999975,
+          "max": 354.9
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.388888888888889e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.027798,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5471531111111111,
+          "min": 0.18000200000000002,
+          "median": 0.361852,
+          "p95": 1.1819870000000001,
+          "p99": 1.41581,
+          "max": 1.427202
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.04659,
+          "min": 0.7123,
+          "median": 1.0741,
+          "p95": 1.3386899999999997,
+          "p99": 1.411392,
+          "max": 1.4187
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.655912896551724,
+          "min": 1.336406,
+          "median": 1.655506,
+          "p95": 1.955626,
+          "p99": 2.1247139999999995,
+          "max": 2.1853059999999997
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.0636951034482758,
+          "min": 0.716102,
+          "median": 1.089302,
+          "p95": 1.3597619999999997,
+          "p99": 1.423618,
+          "max": 1.427202
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.3131011111111111,
+          "min": 0.1786,
+          "median": 0.31365,
+          "p95": 0.464575,
+          "p99": 0.5539810000000001,
+          "max": 0.5781
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N10000_r3",
+        "config": "U0",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 20.178,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N10000_r3",
+      "config": "U1",
+      "items": 10000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N10000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N10000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.604088138888889,
+          "min": 1.0239,
+          "median": 1.4373,
+          "p95": 1.8763599999999998,
+          "p99": 2.3001079999999927,
+          "max": 19.6508
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.808107277777778,
+          "min": 1.861,
+          "median": 4.7308,
+          "p95": 5.496639999999999,
+          "p99": 6.0249019999999955,
+          "max": 19.8516
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1272.148906861111,
+          "min": 1257.7305,
+          "median": 1272.6660499999998,
+          "p95": 1275.6992,
+          "p99": 1276.160239,
+          "max": 1276.5039
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 12.175749999999999,
+          "min": 6.1,
+          "median": 11.12,
+          "p95": 23.400499999999997,
+          "p99": 30.570199999999996,
+          "max": 52.06
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 34.271499999999996,
+          "min": 16.2,
+          "median": 30.6,
+          "p95": 46.70499999999998,
+          "p99": 168.51399999999967,
+          "max": 370.5
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 0.12575025,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 16.7437
+        }
+      },
+      "gc": {
+        "floor_ms": 0.027802,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6498124444444444,
+          "min": 0.186598,
+          "median": 0.49319799999999997,
+          "p95": 1.3898679999999999,
+          "p99": 1.500899,
+          "max": 1.544598
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.1812600000000002,
+          "min": 0.9262,
+          "median": 1.20065,
+          "p95": 1.462855,
+          "p99": 1.497195,
+          "max": 1.5101
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.9404215862068965,
+          "min": 1.508994,
+          "median": 1.941594,
+          "p95": 2.209014,
+          "p99": 2.222814,
+          "max": 2.225894
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.2226945517241377,
+          "min": 0.990598,
+          "median": 1.235398,
+          "p95": 1.494778,
+          "p99": 1.5308499999999998,
+          "max": 1.544598
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.36180333333333337,
+          "min": 0.1828,
+          "median": 0.3801,
+          "p95": 0.5577799999999999,
+          "p99": 0.617489,
+          "max": 0.6797
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N10000_r3",
+        "config": "U1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 19.935,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 350,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N100000_r3",
+      "config": "U2",
+      "items": 100000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N100000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N100000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.4388506666666667,
+          "min": 1.7939,
+          "median": 2.3558,
+          "p95": 2.8466949999999995,
+          "p99": 5.021135999999992,
+          "max": 7.6829
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.795177222222222,
+          "min": 2.3764,
+          "median": 4.799,
+          "p95": 5.49722,
+          "p99": 5.841238999999999,
+          "max": 9.5944
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1294.2596525555557,
+          "min": 1255.3867,
+          "median": 1297.375,
+          "p95": 1299.1914,
+          "p99": 1299.6055,
+          "max": 1300.3008
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136749.45027777777,
+          "min": 135659.0,
+          "median": 136747.5,
+          "p95": 137720.1,
+          "p99": 137837.04,
+          "max": 137951.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.651902777777778,
+          "min": 7.526,
+          "median": 10.5685,
+          "p95": 12.95605,
+          "p99": 14.23601,
+          "max": 23.231
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 43.794333333333334,
+          "min": 31.7,
+          "median": 42.9,
+          "p95": 50.7,
+          "p99": 66.8039999999999,
+          "max": 176.3
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.4722222222222223e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0004
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029702,
+        "floor_samples": 3449,
+        "gc_frames": 151,
+        "gc_frame_ms": {
+          "n": 151,
+          "mean": 1.569958927152318,
+          "min": 0.034198,
+          "median": 2.0092980000000003,
+          "p95": 3.296348,
+          "p99": 3.3979980000000003,
+          "max": 3.897498
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.0700966666666667,
+          "min": 2.6474,
+          "median": 3.14565,
+          "p95": 3.3812149999999996,
+          "p99": 3.7373550000000004,
+          "max": 3.8767
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 7.904538206896553,
+          "min": 6.29409,
+          "median": 7.7338900000000015,
+          "p95": 9.6701488,
+          "p99": 10.07325344,
+          "max": 10.07919
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.0788014482758626,
+          "min": 2.670798,
+          "median": 3.150798,
+          "p95": 3.400618,
+          "p99": 3.7613059999999994,
+          "max": 3.897498
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 5.0344827586206895,
+          "min": 5.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "p99": 5.719999999999999,
+          "max": 6.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 151,
+          "mean": 1.3428781456953642,
+          "min": 0.0345,
+          "median": 1.0466,
+          "p95": 3.2198,
+          "p99": 3.3226500000000003,
+          "max": 3.8083
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "GC": 60,
+        "PSO": 2,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N100000_r3",
+        "config": "U2",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 220.978,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N100000_r3",
+      "config": "S1",
+      "items": 100000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N100000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N100000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.6456451388888889,
+          "min": 1.1697,
+          "median": 1.6191,
+          "p95": 2.0194699999999997,
+          "p99": 2.517050999999992,
+          "max": 4.8163
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.910044249999999,
+          "min": 2.4085,
+          "median": 4.89575,
+          "p95": 5.596494999999999,
+          "p99": 5.91684,
+          "max": 8.6275
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1283.3418079444446,
+          "min": 1239.6445,
+          "median": 1284.6952999999999,
+          "p95": 1291.254095,
+          "p99": 1291.7189170000001,
+          "max": 1292.1797
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 2.831637777777778,
+          "min": 2.199,
+          "median": 2.544,
+          "p95": 4.347399999999999,
+          "p99": 4.94182999999998,
+          "max": 7.915
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 35.88944444444444,
+          "min": 25.4,
+          "median": 31.7,
+          "p95": 47.61499999999992,
+          "p99": 173.01099999999974,
+          "max": 274.2
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.1666666666666668e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0002
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029299,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6529486444444444,
+          "min": 0.0,
+          "median": 0.31355099999999997,
+          "p95": 1.757496,
+          "p99": 1.9645169999999998,
+          "max": 2.1564010000000002
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.5483566666666666,
+          "min": 1.1825,
+          "median": 1.5274,
+          "p95": 1.8745149999999997,
+          "p99": 2.079716,
+          "max": 2.1405
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.962509482758621,
+          "min": 1.508703,
+          "median": 1.903306,
+          "p95": 2.5351627999999997,
+          "p99": 2.9510107199999998,
+          "max": 3.076003
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.5608216896551725,
+          "min": 1.1875010000000001,
+          "median": 1.542101,
+          "p95": 1.8944409999999998,
+          "p99": 2.096033,
+          "max": 2.1564010000000002
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.44753777777777776,
+          "min": 0.002,
+          "median": 0.30879999999999996,
+          "p95": 1.1679199999999998,
+          "p99": 1.274732,
+          "max": 1.3292
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N100000_r3",
+        "config": "S1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 4.668,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N100000_r3",
+      "config": "U0",
+      "items": 100000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N100000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N100000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.3909115277777775,
+          "min": 1.7328,
+          "median": 2.3177,
+          "p95": 2.817219999999999,
+          "p99": 5.052134999999987,
+          "max": 7.6636
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.818423611111111,
+          "min": 2.621,
+          "median": 4.8087,
+          "p95": 5.501875,
+          "p99": 5.8576049999999995,
+          "max": 9.1402
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1301.566533888889,
+          "min": 1253.8828,
+          "median": 1305.1992,
+          "p95": 1307.5860950000001,
+          "p99": 1308.062539,
+          "max": 1308.5664
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136721.78333333333,
+          "min": 135641.0,
+          "median": 136721.5,
+          "p95": 137697.05,
+          "p99": 137815.0,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.311651666666668,
+          "min": 6.79,
+          "median": 10.147,
+          "p95": 12.827899999999994,
+          "p99": 14.60242999999999,
+          "max": 20.79
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 42.00022222222222,
+          "min": 32.0,
+          "median": 41.0,
+          "p95": 49.50999999999995,
+          "p99": 63.1,
+          "max": 172.7
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.2777777777777777e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.030298,
+        "floor_samples": 3494,
+        "gc_frames": 106,
+        "gc_frame_ms": {
+          "n": 106,
+          "mean": 1.6292208679245281,
+          "min": 0.005401000000000003,
+          "median": 1.9662519999999999,
+          "p95": 3.720402,
+          "p99": 4.613282000000001,
+          "max": 4.895502
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.2764666666666664,
+          "min": 2.7003,
+          "median": 3.0548,
+          "p95": 4.46606,
+          "p99": 4.796457,
+          "max": 4.8709
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.763096689655173,
+          "min": 4.870706,
+          "median": 5.5087079999999995,
+          "p95": 7.069227999999999,
+          "p99": 7.361739999999999,
+          "max": 7.455007999999999
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.3098951034482758,
+          "min": 2.7114019999999996,
+          "median": 3.0974019999999998,
+          "p95": 4.501841999999999,
+          "p99": 4.820937999999999,
+          "max": 4.895502
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.5172413793103448,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 106,
+          "mean": 1.362758490566038,
+          "min": 0.0044,
+          "median": 1.95465,
+          "p95": 2.6921,
+          "p99": 3.531385000000001,
+          "max": 3.7951
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N100000_r3",
+        "config": "U0",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 222.831,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N100000_r3",
+      "config": "U1",
+      "items": 100000,
+      "run": 3,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 67.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N100000_r3 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N100000_r3.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 13.747942833333333,
+          "min": 1.7724,
+          "median": 2.3014,
+          "p95": 2.9485749999999995,
+          "p99": 4.937564999999993,
+          "max": 1478.8601
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 15.405619916666666,
+          "min": 2.0546,
+          "median": 4.066,
+          "p95": 4.720315,
+          "p99": 5.726252999999994,
+          "max": 1460.8103
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1308.7448268888888,
+          "min": 1266.8477,
+          "median": 1314.4375,
+          "p95": 1317.1367,
+          "p99": 1317.8555,
+          "max": 1318.8594
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136728.0661111111,
+          "min": 135643.0,
+          "median": 136728.0,
+          "p95": 137701.0,
+          "p99": 137821.0,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.294437499999999,
+          "min": 6.527,
+          "median": 9.9145,
+          "p95": 13.121,
+          "p99": 17.167229999999947,
+          "max": 32.711
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 41.109611111111114,
+          "min": 29.0,
+          "median": 39.9,
+          "p95": 49.604999999999976,
+          "p99": 64.80199999999995,
+          "max": 261.6
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 11.358793027777779,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 1473.9229
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029001,
+        "floor_samples": 3485,
+        "gc_frames": 115,
+        "gc_frame_ms": {
+          "n": 115,
+          "mean": 1.454956391304348,
+          "min": 0.085299,
+          "median": 1.882099,
+          "p95": 2.925909,
+          "p99": 3.087341,
+          "max": 3.370499
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 2.75521,
+          "min": 2.4844,
+          "median": 2.72025,
+          "p95": 3.031555,
+          "p99": 3.265247,
+          "max": 3.3423
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.585968586206897,
+          "min": 4.921897,
+          "median": 5.558095999999999,
+          "p95": 6.255036,
+          "p99": 6.64726,
+          "max": 6.762396000000001
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 2.7886852068965515,
+          "min": 2.509699,
+          "median": 2.755399,
+          "p95": 3.0627189999999995,
+          "p99": 3.294927,
+          "max": 3.370499
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.8275862068965516,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 115,
+          "mean": 1.1124965217391305,
+          "min": 0.067,
+          "median": 1.4311,
+          "p95": 2.00246,
+          "p99": 2.0389220000000003,
+          "max": 2.0529
+        },
+        "spikes": 0,
+        "hitches": 29,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 29.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N100000_r3",
+        "config": "U1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 210.156,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 3430,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N10000_r4",
+      "config": "S1",
+      "items": 10000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 21.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N10000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N10000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.3674365,
+          "min": 0.8749,
+          "median": 1.33155,
+          "p95": 1.7626249999999999,
+          "p99": 2.207679999999998,
+          "max": 4.6055
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.391861055555555,
+          "min": 2.2281,
+          "median": 4.3694500000000005,
+          "p95": 5.033069999999999,
+          "p99": 5.4167909999999955,
+          "max": 9.0077
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1261.6107524444444,
+          "min": 1227.4062,
+          "median": 1272.0156000000002,
+          "p95": 1277.3087950000001,
+          "p99": 1278.476678,
+          "max": 1279.7148
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 3.140483333333333,
+          "min": 2.22,
+          "median": 2.68,
+          "p95": 4.720499999999997,
+          "p99": 14.422699999999937,
+          "max": 45.72
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 12.554083333333333,
+          "min": 7.1,
+          "median": 11.0,
+          "p95": 17.9,
+          "p99": 33.80099999999997,
+          "max": 219.0
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.0555555555555555e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.027198,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.42275175555555555,
+          "min": 0.0,
+          "median": 0.26025200000000004,
+          "p95": 1.037397,
+          "p99": 2.661198,
+          "max": 2.673302
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 0.9682666666666666,
+          "min": 0.5991,
+          "median": 0.8500000000000001,
+          "p95": 1.9821649999999957,
+          "p99": 2.6647529999999997,
+          "max": 2.6689
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.2629776896551725,
+          "min": 0.865704,
+          "median": 1.1376060000000001,
+          "p95": 2.416444799999997,
+          "p99": 3.044356,
+          "max": 3.051104
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 0.9701261379310345,
+          "min": 0.607602,
+          "median": 0.851402,
+          "p95": 2.064461999999997,
+          "p99": 2.6694940000000003,
+          "max": 2.673302
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.18667333333333333,
+          "min": 0.0016,
+          "median": 0.20029999999999998,
+          "p95": 0.37811,
+          "p99": 0.9610239999999999,
+          "max": 1.1554
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N10000_r4",
+        "config": "S1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 0.505,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N10000_r4",
+      "config": "U0",
+      "items": 10000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N10000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N10000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.4379574444444445,
+          "min": 0.9317,
+          "median": 1.4004,
+          "p95": 1.8185149999999999,
+          "p99": 2.2471879999999884,
+          "max": 6.5869
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.6397351944444445,
+          "min": 1.7857,
+          "median": 4.64215,
+          "p95": 5.29875,
+          "p99": 5.623901,
+          "max": 10.6492
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1292.6698575277776,
+          "min": 1267.1406,
+          "median": 1293.3730500000001,
+          "p95": 1296.226795,
+          "p99": 1296.9219,
+          "max": 1297.3242
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.140755555555556,
+          "min": 5.95,
+          "median": 10.33,
+          "p95": 16.5505,
+          "p99": 29.06079999999998,
+          "max": 52.46
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 33.007777777777775,
+          "min": 16.2,
+          "median": 30.2,
+          "p95": 44.3,
+          "p99": 68.8339999999992,
+          "max": 329.6
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.4722222222222223e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.0282,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5567244444444444,
+          "min": 0.1643,
+          "median": 0.34025,
+          "p95": 1.267465,
+          "p99": 1.386395,
+          "max": 1.4972
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.06363,
+          "min": 0.7092,
+          "median": 1.0629,
+          "p95": 1.34221,
+          "p99": 1.451896,
+          "max": 1.486
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.6698,
+          "min": 1.2046999999999999,
+          "median": 1.6622999999999999,
+          "p95": 1.96264,
+          "p99": 2.13564,
+          "max": 2.1901
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.0718,
+          "min": 0.7132,
+          "median": 1.0697,
+          "p95": 1.35598,
+          "p99": 1.46234,
+          "max": 1.4972
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.3217655555555555,
+          "min": 0.1673,
+          "median": 0.29645,
+          "p95": 0.5609149999999999,
+          "p99": 0.665161,
+          "max": 0.6697
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N10000_r4",
+        "config": "U0",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 20.761,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N10000_r4",
+      "config": "U1",
+      "items": 10000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N10000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N10000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.6482955833333333,
+          "min": 1.1603,
+          "median": 1.4711,
+          "p95": 1.8820349999999997,
+          "p99": 2.3664029999999974,
+          "max": 18.9636
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.767989888888889,
+          "min": 1.725,
+          "median": 4.678850000000001,
+          "p95": 5.356244999999999,
+          "p99": 5.727705999999995,
+          "max": 19.6552
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1287.9182668333333,
+          "min": 1245.4766,
+          "median": 1290.0938,
+          "p95": 1292.906595,
+          "p99": 1293.863417,
+          "max": 1294.1094
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 12.174275,
+          "min": 5.52,
+          "median": 11.65,
+          "p95": 17.040499999999998,
+          "p99": 29.85129999999997,
+          "max": 53.84
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 35.106611111111114,
+          "min": 15.9,
+          "median": 31.4,
+          "p95": 45.4,
+          "p99": 170.03199999999924,
+          "max": 382.6
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 0.12553975,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 16.284
+        }
+      },
+      "gc": {
+        "floor_ms": 0.031698,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6351197777777778,
+          "min": 0.181702,
+          "median": 0.5310520000000001,
+          "p95": 1.351027,
+          "p99": 1.434769,
+          "max": 1.470102
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.1149833333333334,
+          "min": 0.846,
+          "median": 1.0597500000000002,
+          "p95": 1.399075,
+          "p99": 1.421523,
+          "max": 1.4306
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.9046266896551722,
+          "min": 1.562506,
+          "median": 1.916706,
+          "p95": 2.1943659999999996,
+          "p99": 2.4113419999999994,
+          "max": 2.485906
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.137443379310345,
+          "min": 0.872802,
+          "median": 1.088202,
+          "p95": 1.428642,
+          "p99": 1.458986,
+          "max": 1.470102
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.37893333333333334,
+          "min": 0.1834,
+          "median": 0.37485,
+          "p95": 0.6297149999999999,
+          "p99": 0.75914,
+          "max": 0.7716
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N10000_r4",
+        "config": "U1",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 20.104,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 350,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N10000_r4",
+      "config": "U2",
+      "items": 10000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=10000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N10000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N10000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.503019111111111,
+          "min": 1.0263,
+          "median": 1.4585499999999998,
+          "p95": 1.8981449999999997,
+          "p99": 2.375903,
+          "max": 4.7295
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.782251916666667,
+          "min": 2.393,
+          "median": 4.7631499999999996,
+          "p95": 5.413334999999999,
+          "p99": 5.734024,
+          "max": 8.7816
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1287.8017254722222,
+          "min": 1254.1484,
+          "median": 1292.9766,
+          "p95": 1294.9883,
+          "p99": 1295.4688390000001,
+          "max": 1295.9258
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 45652.668333333335,
+          "min": 45544.0,
+          "median": 45653.0,
+          "p95": 45751.0,
+          "p99": 45771.0,
+          "max": 45804.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 11.589316666666667,
+          "min": 5.47,
+          "median": 10.81,
+          "p95": 18.044999999999973,
+          "p99": 31.300699999999985,
+          "max": 56.84
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 34.49494444444444,
+          "min": 16.7,
+          "median": 30.8,
+          "p95": 45.504999999999974,
+          "p99": 166.30299999999994,
+          "max": 296.1
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.4722222222222223e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0004
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029899,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.5952254444444445,
+          "min": 0.171501,
+          "median": 0.378901,
+          "p95": 1.2857660000000002,
+          "p99": 1.33534,
+          "max": 1.446501
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.15575,
+          "min": 0.9216,
+          "median": 1.16245,
+          "p95": 1.30773,
+          "p99": 1.4016510000000002,
+          "max": 1.4388
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.7821719655172414,
+          "min": 1.4025029999999998,
+          "median": 1.769703,
+          "p95": 2.117343,
+          "p99": 2.5407189999999993,
+          "max": 2.704603
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.162242379310345,
+          "min": 0.925301,
+          "median": 1.161601,
+          "p95": 1.318481,
+          "p99": 1.4115289999999998,
+          "max": 1.446501
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.3567088888888889,
+          "min": 0.1749,
+          "median": 0.35619999999999996,
+          "p95": 0.54046,
+          "p99": 0.6458369999999998,
+          "max": 1.0256
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N10000_r4",
+        "config": "U2",
+        "items": 10000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 22.807,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 7522,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4020923,
+        "probe_stale": 179077,
+        "probe_errors": 0,
+        "probe_sink": 17540713715494,
+        "checksum": "0xEEEEEE28"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_S1_N100000_r4",
+      "config": "S1",
+      "items": 100000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 22.4,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=S1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_S1_N100000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_S1_N100000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 1.5911545833333334,
+          "min": 1.189,
+          "median": 1.55205,
+          "p95": 1.9846449999999998,
+          "p99": 2.398262999999996,
+          "max": 5.148
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.656584416666667,
+          "min": 2.1062,
+          "median": 4.66155,
+          "p95": 5.322984999999999,
+          "p99": 5.656031999999999,
+          "max": 8.9889
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1289.2224538333335,
+          "min": 1264.3008,
+          "median": 1290.0312,
+          "p95": 1293.2422,
+          "p99": 1293.9844,
+          "max": 1294.4336
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 35534.0,
+          "min": 35534.0,
+          "median": 35534.0,
+          "p95": 35534.0,
+          "p99": 35534.0,
+          "max": 35534.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 2.8068477777777776,
+          "min": 2.255,
+          "median": 2.563,
+          "p95": 4.34505,
+          "p99": 5.02839999999999,
+          "max": 6.795
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 37.26916666666666,
+          "min": 26.2,
+          "median": 32.2,
+          "p95": 49.0,
+          "p99": 182.50699999999983,
+          "max": 327.5
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.3333333333333334e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.001
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029501,
+        "floor_samples": 3510,
+        "gc_frames": 90,
+        "gc_frame_ms": {
+          "n": 90,
+          "mean": 0.6513123666666667,
+          "min": 0.0,
+          "median": 0.297699,
+          "p95": 1.821849,
+          "p99": 1.9951869999999998,
+          "max": 2.1204989999999997
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 1.5937266666666665,
+          "min": 1.2192,
+          "median": 1.5650499999999998,
+          "p95": 1.9472749999999999,
+          "p99": 2.056163,
+          "max": 2.0954
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 1.9640039655172412,
+          "min": 1.486598,
+          "median": 1.8840949999999999,
+          "p95": 2.439856399999999,
+          "p99": 2.8301905599999992,
+          "max": 2.956694
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 1.609188655172414,
+          "min": 1.222099,
+          "median": 1.590499,
+          "p95": 1.963979,
+          "p99": 2.081075,
+          "max": 2.1204989999999997
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.0,
+          "min": 3.0,
+          "median": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 90,
+          "mean": 0.44259000000000004,
+          "min": 0.0018,
+          "median": 0.28900000000000003,
+          "p95": 1.21257,
+          "p99": 1.2867609999999998,
+          "max": 1.3803
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_S1_N100000_r4",
+        "config": "S1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 4.014,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U0_N100000_r4",
+      "config": "U0",
+      "items": 100000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 23.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U0 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U0_N100000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U0_N100000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.4162704722222226,
+          "min": 1.7793,
+          "median": 2.3306,
+          "p95": 2.991805,
+          "p99": 5.013488999999998,
+          "max": 8.2195
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.7654595,
+          "min": 2.4041,
+          "median": 4.7534,
+          "p95": 5.436685,
+          "p99": 5.767638999999999,
+          "max": 9.5263
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1309.7856556944446,
+          "min": 1287.3945,
+          "median": 1312.2773,
+          "p95": 1314.9062,
+          "p99": 1315.992395,
+          "max": 1316.6094
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136723.25027777778,
+          "min": 135643.0,
+          "median": 136724.0,
+          "p95": 137696.05,
+          "p99": 137813.0,
+          "max": 137894.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.170505277777778,
+          "min": 5.99,
+          "median": 9.8195,
+          "p95": 13.395349999999997,
+          "p99": 15.689269999999993,
+          "max": 19.544
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 41.78319444444445,
+          "min": 29.2,
+          "median": 40.3,
+          "p95": 51.5,
+          "p99": 67.30199999999995,
+          "max": 241.9
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.138888888888889e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.031102,
+        "floor_samples": 3485,
+        "gc_frames": 115,
+        "gc_frame_ms": {
+          "n": 115,
+          "mean": 1.5855076260869563,
+          "min": 0.004001000000000001,
+          "median": 1.981298,
+          "p95": 4.098338,
+          "p99": 4.503564,
+          "max": 4.628998
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.4862699999999998,
+          "min": 2.6684,
+          "median": 3.3796999999999997,
+          "p95": 4.462025,
+          "p99": 4.57129,
+          "max": 4.6116
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 6.093064931034482,
+          "min": 5.069893,
+          "median": 5.949292,
+          "p95": 7.564831999999999,
+          "p99": 7.939552000000001,
+          "max": 8.001992000000001
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.520587655172414,
+          "min": 2.678498,
+          "median": 3.435498,
+          "p95": 4.4949580000000005,
+          "p99": 4.595174,
+          "max": 4.628998
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.8620689655172415,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 115,
+          "mean": 1.3214678260869563,
+          "min": 0.0059,
+          "median": 1.9441,
+          "p95": 2.9175099999999996,
+          "p99": 3.3268039999999997,
+          "max": 3.4926
+        },
+        "spikes": 0,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U0_N100000_r4",
+        "config": "U0",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 228.254,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U1_N100000_r4",
+      "config": "U1",
+      "items": 100000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 68.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U1 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U1_N100000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U1_N100000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 13.832750833333334,
+          "min": 1.7113,
+          "median": 2.31765,
+          "p95": 2.9429649999999983,
+          "p99": 5.178556999999966,
+          "max": 1468.8151
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 15.479372416666667,
+          "min": 2.1116,
+          "median": 4.094099999999999,
+          "p95": 4.7770399999999995,
+          "p99": 5.835109999999998,
+          "max": 1467.0732
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1279.4642836666667,
+          "min": 1252.7344,
+          "median": 1281.8418000000001,
+          "p95": 1285.3047,
+          "p99": 1286.168117,
+          "max": 1286.6523
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136728.60583333333,
+          "min": 135644.0,
+          "median": 136728.5,
+          "p95": 137701.05,
+          "p99": 137819.01,
+          "max": 137934.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 10.082009166666667,
+          "min": 6.71,
+          "median": 9.6615,
+          "p95": 12.395299999999997,
+          "p99": 24.432989999999883,
+          "max": 34.95
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 40.496805555555554,
+          "min": 26.0,
+          "median": 38.8,
+          "p95": 49.90499999999997,
+          "p99": 73.20999999999977,
+          "max": 192.9
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 11.424949027777778,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 1459.3625
+        }
+      },
+      "gc": {
+        "floor_ms": 0.029098,
+        "floor_samples": 3487,
+        "gc_frames": 113,
+        "gc_frame_ms": {
+          "n": 113,
+          "mean": 1.5034426902654867,
+          "min": 0.035003000000000006,
+          "median": 1.9474019999999999,
+          "p95": 2.9604220000000003,
+          "p99": 3.063586,
+          "max": 3.087202
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 2.83003,
+          "min": 2.6292,
+          "median": 2.8239,
+          "p95": 3.034485,
+          "p99": 3.0562229999999997,
+          "max": 3.0624
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 5.653131586206897,
+          "min": 5.035306,
+          "median": 5.640708,
+          "p95": 6.197508000000001,
+          "p99": 6.820108,
+          "max": 7.046908000000001
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 2.85208475862069,
+          "min": 2.648502,
+          "median": 2.846502,
+          "p95": 3.041302,
+          "p99": 3.080902,
+          "max": 3.087202
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 3.7586206896551726,
+          "min": 3.0,
+          "median": 4.0,
+          "p95": 4.0,
+          "p99": 4.0,
+          "max": 4.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 113,
+          "mean": 1.156913274336283,
+          "min": 0.0294,
+          "median": 1.5057,
+          "p95": 2.0151,
+          "p99": 2.0809439999999997,
+          "max": 2.1625
+        },
+        "spikes": 0,
+        "hitches": 29,
+        "minutes": 1.0,
+        "spikes_per_min": 0.0,
+        "hitches_per_min": 29.0
+      },
+      "finalised": true,
+      "events": {
+        "PSO": 2,
+        "GC": 30,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U1_N100000_r4",
+        "config": "U1",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 219.154,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 3430,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    },
+    {
+      "name": "2026-11-21_063108_s6batchA_U2_N100000_r4",
+      "config": "U2",
+      "items": 100000,
+      "run": 4,
+      "priming": false,
+      "exit_code": 0,
+      "wall_seconds": 21.3,
+      "command": "\"D:\\UNREAL PORTFOLIO\\P04_GCBudget\\Build\\Windows\\GCBudget\\Binaries\\Win64\\GCBudget.exe\" -windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd -NoVerifyGC -GCBConfig=U2 -GCBItems=100000 -GCBSeed=1 -GCBGCFrames=120 -GCBWarmup=10.0 -GCBCapture=60.0 -GCBRunTag=2026-11-21_063108_s6batchA_U2_N100000_r4 -traceautostart=0",
+      "capture": "2026-11-21_063108_s6batchA_U2_N100000_r4.csv",
+      "stats": {
+        "GameThreadTime": {
+          "n": 3600,
+          "mean": 2.398278388888889,
+          "min": 1.7427,
+          "median": 2.32275,
+          "p95": 2.8048749999999996,
+          "p99": 4.907110999999988,
+          "max": 9.1921
+        },
+        "FrameTime": {
+          "n": 3600,
+          "mean": 4.394624777777778,
+          "min": 2.0854,
+          "median": 4.3648,
+          "p95": 5.038505,
+          "p99": 5.454952999999999,
+          "max": 10.6958
+        },
+        "PhysicalUsedMB": {
+          "n": 3600,
+          "mean": 1309.1685238333334,
+          "min": 1277.6836,
+          "median": 1315.13085,
+          "p95": 1322.2188,
+          "p99": 1322.816556,
+          "max": 1323.6055
+        },
+        "GCBudget/UObjects": {
+          "n": 3600,
+          "mean": 136743.32083333333,
+          "min": 135657.0,
+          "median": 136742.5,
+          "p95": 137718.0,
+          "p99": 137834.03,
+          "max": 137951.0
+        },
+        "GCBWorkload/UpdateNsPerItem": {
+          "n": 3600,
+          "mean": 9.910177222222222,
+          "min": 5.925,
+          "median": 9.725000000000001,
+          "p95": 12.2812,
+          "p99": 13.723269999999994,
+          "max": 28.969
+        },
+        "GCBWorkload/ProbeNsPerLookup": {
+          "n": 3600,
+          "mean": 41.374249999999996,
+          "min": 31.8,
+          "median": 40.0,
+          "p95": 49.9,
+          "p99": 68.70899999999979,
+          "max": 215.6
+        },
+        "GCBWorkload/ClusterMs": {
+          "n": 3600,
+          "mean": 1.0555555555555555e-06,
+          "min": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0003
+        }
+      },
+      "gc": {
+        "floor_ms": 0.028901,
+        "floor_samples": 3457,
+        "gc_frames": 143,
+        "gc_frame_ms": {
+          "n": 143,
+          "mean": 1.7423276643356644,
+          "min": 0.008299999999999998,
+          "median": 2.0060990000000003,
+          "p95": 4.666849000000005,
+          "p99": 5.075439,
+          "max": 5.601198999999999
+        },
+        "cycle_starts": 30,
+        "engine_gc_count": 30,
+        "cycle_pause_ms": {
+          "n": 30,
+          "mean": 3.52461,
+          "min": 2.401,
+          "median": 3.22415,
+          "p95": 5.05762,
+          "p99": 5.441364,
+          "max": 5.5859
+        },
+        "cycle_total_ms": {
+          "n": 29,
+          "mean": 8.215067724137931,
+          "min": 6.006596000000001,
+          "median": 8.104595,
+          "p95": 10.491655999999999,
+          "p99": 11.533127999999996,
+          "max": 11.874195999999998
+        },
+        "cycle_max_frame_ms": {
+          "n": 29,
+          "mean": 3.546440379310345,
+          "min": 2.418199,
+          "median": 3.216699,
+          "p95": 5.076699,
+          "p99": 5.461394999999999,
+          "max": 5.601198999999999
+        },
+        "cycle_frames": {
+          "n": 29,
+          "mean": 4.724137931034483,
+          "min": 4.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "p99": 5.719999999999999,
+          "max": 6.0
+        },
+        "engine_gc_time_on_gc_frames_ms": {
+          "n": 143,
+          "mean": 1.4945244755244755,
+          "min": 0.0067,
+          "median": 1.2296,
+          "p95": 4.584440000000005,
+          "p99": 5.003032000000001,
+          "max": 5.5298
+        },
+        "spikes": 3,
+        "hitches": 0,
+        "minutes": 1.0,
+        "spikes_per_min": 3.0,
+        "hitches_per_min": 0.0
+      },
+      "finalised": true,
+      "events": {
+        "GC": 62,
+        "PSO": 2,
+        "GCBWorkload/BenchEnd": 1
+      },
+      "frames": 3600,
+      "report": {
+        "run": "2026-11-21_063108_s6batchA_U2_N100000_r4",
+        "config": "U2",
+        "items": 100000,
+        "seed": 1,
+        "gc_frames": 120,
+        "probe_lookups_per_frame": 1000,
+        "warmup_s": 10.0,
+        "capture_s": 60.0,
+        "bench_start_frame": 600,
+        "bench_end_frame": 4200,
+        "frames": 4201,
+        "populate_ms": 191.196,
+        "gc_requests": 35,
+        "gc_cycle_starts_observed": 35,
+        "gc_cycle_starts_outside_bracket": 0,
+        "clusters_rebuilt": 0,
+        "expired": 75394,
+        "probe_lookups": 4200000,
+        "probe_resolved": 4019886,
+        "probe_stale": 180114,
+        "probe_errors": 0,
+        "probe_sink": 17599622050483,
+        "checksum": "0x2CE03093"
+      },
+      "log_errors": 0,
+      "log_warnings": 0
+    }
+  ],
+  "reanalysed": "2026-11-21T07:07:20"
+}

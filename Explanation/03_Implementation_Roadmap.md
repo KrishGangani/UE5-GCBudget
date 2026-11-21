@@ -10,7 +10,7 @@
 
 ---
 
-**Progress (2026-11-21):** Phases 1–3 ✅. Phase 4 (F1–F3) ✅ (`09`: 0 errors, 0 warnings; packaged smoke run on the RTX GPU). Phase 5: S1–S5 ✅ (`09`: 0 warnings; the E0 cadence and counters checked; the bracket matches Insights within 0.008 ms per cycle; the six handle tests pass; U0 = U1 = U2 = S1 checksums, 0 probe errors, no `-VERIFYGC` errors). S6 next.
+**Progress (2026-11-21):** Phases 1–3 ✅. Phase 4 (F1–F3) ✅ (`09`: 0 errors, 0 warnings; packaged smoke run on the RTX GPU). Phase 5: S1–S6 ✅ (`09`: 0 warnings; the E0 cadence and counters checked; the bracket matches Insights within 0.008 ms per cycle; the six handle tests pass; U0 = U1 = U2 = S1 checksums, 0 probe errors, no `-VERIFYGC` errors; the baselines recorded before S0 exists). S7 next.
 
 ## Phase 4: Foundation (no gameplay code yet)
 

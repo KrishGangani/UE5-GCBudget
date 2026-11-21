@@ -106,7 +106,7 @@ The item model is deliberately minimal. It is a **workload**, not an inventory s
 |---|---|---|---|
 | M1 | **GC pause per cycle**: p95 and max | ms | `GetLastGCDuration()` read in `PostGarbageCollect`, our CSV stat (`01b` #3) |
 | M2 | **Per-frame GC time on GC frames**: p95 and max | ms | Our bracket around the engine's GC call minus its non-GC floor (`01b` §4); validated once against the Insights timer `ConditionalCollectGarbage` |
-| M3 | **GC-caused hitches per minute** | count/min | Frames where M2 > 5 ms (*GC spikes*: above 5.8.4's own default incremental slice, `GarbageCollection.cpp:310`), and frames where `FrameTime` > 33.3 ms **and** the frame is a GC frame (*GC hitches*) |
+| M3 | **GC-caused hitches per minute** | count/min | Frames where M2 > 5 ms (*GC spikes*: above 5.8.4's own default incremental slice, `GarbageCollection.cpp:310`), and frames where `FrameTime` > 33.3 ms **and** the frame is a GC frame (*GC hitches*). A frame's own `FrameTime` is the next CSV row's value (`09` S6) |
 | M4 | **UObject count** | count | `GUObjectArray.GetObjectArrayNumMinusAvailable()`, our CSV stat each frame (the CSV `ObjectCount` category is compiled out, `01b` B-4) |
 | M5 | **Resident memory** | MB; bytes per item | CSV `PhysicalUsedMB` (working set), median over the capture; minus the E0 run, divided by N |
 | M6 | **Per-item update cost** | ns per item | Our timer around the store's update loop, divided by N, median over frames |

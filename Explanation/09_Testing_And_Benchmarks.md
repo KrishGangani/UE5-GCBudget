@@ -210,3 +210,51 @@ S5 was built and checked in the same queue job as the S6 baselines (S6 adds no c
 | S5-6 | UObject count = E0 + store; probe errors 0 | `python -I Tools\check_batch.py 2026-11-21_062953_s5check`, and the run reports | ✅ "all runs pass". S1 at 10,000: **35,534, constant**: E0 of this build (35,533, S6 Batch B) + 1 store. Probe: 1,500,000 lookups, 0 errors. E0 rose by 5 from S4 (35,528), which matches two new classes × (class object + default object) plus S1's struct type **[inferred]** |
 
 **Audit trail (S5 code):** the S3–S5 review (S4 section) found two things in the staged S5 code: a second `Populate` kept the old probe handles (now reset, `05` F1), and the `Build.cs` comment that S5 would make wrong (the plugin is now a public dependency, `05` F3). A structured self-review of the director's S5 change found nothing to change.
+
+### S6 · Baselines before the proposed store exists (2026-11-21)
+
+Both batches ran in job 11 (S5 section), on the S5 build: packaged Development, fixed step, the runner pinned to the performance cores, 10 s of warm-up, **60 s of capture (30 cycles)**, one priming run each, interleaved with a rotating order. These are the **first data** for H1, H2, H4, H5 and H6, recorded before S0's code exists (`03`). They are not the results: those come from Phase 8's full batches, with S0.
+
+- **Batch A** `2026-11-21_063108_s6batchA`: `python -I -u Tools\run_bench.py --configs U0,U1,U2,S1 --items 10000,100000 --label s6batchA` (4 runs per combination, the protocol's default for 4 configurations).
+- **Batch B** `2026-11-21_064925_s6batchB`: `python -I -u Tools\run_bench.py --configs U0,S1,E0 --items 1000,10000,30000,100000 --runs 2 --label s6batchB`. E0 is the N = 0 point, so the batch has 3 configurations and 2 runs, and the runner warns that the rotation is unbalanced.
+- Both: `python -I Tools\check_batch.py <batch>` → "all runs pass" (30 cycles 120 frames apart on the trigger frames, `GC/Count` 30, 35 requests = 35 cycles in the bracket, 0 outside, 0 log errors). **The checksums agree across every configuration at every N** (the summaries' SC7 tables). Probe errors: 0 in every run.
+
+Each cell below is the median across runs of each run's statistic, then [min–max across runs], from the batch summaries.
+
+**Batch A**
+
+| Config | N | Cycle pause p95 / max (ms) | GC frame ms p95 | Spikes / min | Hitches / min | UObjects | Update ns / item | Probe ns / lookup |
+|---|---|---|---|---|---|---|---|---|
+| S1 | 10,000 | 1.094 [1.052–1.982] / 1.269 [1.068–2.669] | 1.028 [0.991–1.037] | 0 | 0 | 35,534 | 2.70 [2.67–2.74] | 11.15 [10.80–11.40] |
+| U0 | 10,000 | 1.340 [1.257–1.364] / 1.452 [1.301–1.635] | 1.194 [1.182–1.267] | 0 | 0 | 45,653 | 10.32 [10.21–10.34] | 30.20 [30.00–30.60] |
+| U1 | 10,000 | 1.460 [1.399–1.519] / 1.537 [1.431–1.608] | 1.379 [1.351–1.407] | 0 | 0 | 45,653 | 11.33 [10.96–11.65] | 30.68 [30.30–31.40] |
+| U2 | 10,000 | 1.372 [1.308–1.499] / 1.487 [1.439–1.585] | 1.301 [1.285–1.324] | 0 | 0 | 45,653 | 10.35 [10.30–10.81] | 30.35 [30.20–30.80] |
+| S1 | 100,000 | 1.981 [1.875–2.017] / 2.118 [2.084–2.373] | 1.819 [1.757–1.874] | 0 | 0 | 35,534 | 2.55 [2.53–2.66] | 31.95 [31.70–33.60] |
+| U0 | 100,000 | 4.464 [4.302–4.701] / 4.848 [4.612–5.482] | 3.811 [3.713–4.098] | 0.00 [0.00–2.00] | 0 | 136,723 | 10.12 [9.82–10.24] | 40.70 [40.30–41.70] |
+| U1 | 100,000 | 3.097 [3.032–3.179] / 3.311 [3.062–3.610] | 2.969 [2.926–3.015] | 0 | **29.00 [29.00–29.00]** | 136,728 | 9.96 [9.66–11.10] | 39.75 [38.80–43.20] |
+| U2 | 100,000 | 4.859 [3.381–5.119] / 5.119 [3.877–5.586] | 3.886 [3.296–4.667] | 1.50 [0.00–3.00] | 0 | 136,742 | 10.04 [9.73–10.57] | 40.70 [39.80–42.90] |
+
+U1's cluster rebuild, per request frame (`check_batch.py`, the per-run median and max of `ClusterMs` on the request frames): **14.8–15.4 ms** (max 16.3–18.5) at 10,000; **1,377–1,391 ms** (max 1,459–1,545) at 100,000.
+
+**Batch B** (U0 and S1; E0 is the N = 0 row)
+
+| N | S1 pause p95 / max (ms) | U0 pause p95 / max (ms) | UObjects S1 / U0 | Update ns / item S1 / U0 | Probe ns / lookup S1 / U0 |
+|---|---|---|---|---|---|
+| 0 (E0) | 1.031 [0.958–1.104] / 1.179 [1.115–1.244] | (the same run) | 35,533 | — | — |
+| 1,000 | 1.013 [0.989–1.036] / 1.046 | 1.046 [0.989–1.102] / 1.089 | 35,534 / 36,546 | 3.55 / 10.90 | 4.35 / 9.05 |
+| 10,000 | 1.073 [1.049–1.097] / 1.095 | 1.233 [1.158–1.308] / 1.332 | 35,534 / 45,653 | 2.69 / 10.37 | 11.05 / 30.55 |
+| 30,000 | 1.217 [1.201–1.233] / 1.243 | 2.018 [1.957–2.078] / 2.143 | 35,534 / 65,887 | 2.54 / 9.88 | 19.30 / 37.85 |
+| 100,000 | 1.910 [1.856–1.965] / 2.061 | 4.011 [3.934–4.089] / 4.301 | 35,534 / 136,723 | 2.55 / 9.75 | 31.80 / 39.95 |
+
+**What the data says, without the verdicts Phase 8 will give:**
+- **U0's cycle pause grows with N**: p95 about 1.0 ms up to 1,000 items, 4.0–4.5 ms at 100,000. **S1's** grows too, but to about 1.9–2.0 ms. Both keep one definition reference per item. That a large part of U0's extra cost is per *object* rather than per *reference* is a reading of these numbers **[inferred]**; S0 (no reference at all) is the next data point.
+- **U1 trades GC time for maintenance.** At 100,000 its cycle pause is lower than U0's (p95 3.10 against 4.46 ms). But rebuilding every changed page before every cycle (and every page changes, as `02` §7 warned) takes about **1.38 s per cycle** in the director's tick, outside the GC bracket. That is a 1.3-second stall on every cycle, every 2 s (29 hitches per minute as the capture can count them, caveat 1). Per page the rebuild costs about 1.5 ms at 10,000 and about 14 ms at 100,000, so the per-page cost grows with N. The cause is **[unverified]**, a Phase 8 diagnostics item.
+- **U2 doesn't lower the pause at 100,000** (p95 4.86 [3.38–5.12] against 4.46 ms) and shows 1.5 spikes per minute. Why is **[unverified]**: Phase 8 checks with `LogGarbage` whether reachability actually ran in slices.
+- **Per-item work:** about 2.5–2.7 ns per item in the struct store against about 10 ns per UObject. Lookups: 4–32 ns through handles, 9–41 ns through weak pointers. Both grow with N, plausibly from cache effects **[inferred]**.
+- **Memory:** `PhysicalUsedMB` stays within 1,271–1,313 MB in every combination, inside the run-to-run spread at these N. It isn't interpretable here.
+
+**Caveats found while reading the baselines:**
+1. **A CSV row's FrameTime is the previous frame's duration.** In U1's captures the request row shows GameThreadTime and ClusterMs of about 1.26 s and FrameTime of 4 ms; the next row shows FrameTime 1.27 s. The engine confirms it: by default (`csv.UseLegacyFrameTime` 0) FrameTime is measured at the start of a frame, after the frame-rate wait, for the frame before (`Runtime/Core/Private/ProfilingDebugging/CsvProfiler.cpp:150–155, 4369–4390`). The first hitch rule (FrameTime > 33.3 ms on a GC frame) therefore looked at the wrong frame. It now uses a GC frame's **own** duration, the next row's FrameTime (`05` C1), and the S5/S6 manifests and summaries were **re-analysed from their raw captures** (`python -I Tools\run_bench.py --resummarize <batch> --reanalyse`). Only one number changed: U1 at 100,000 went from 30 to **29** hitches per run. Both ends of the capture explain the difference. Its first row (frame 601) is a purge frame carrying frame 600's 1,221 ms, a request made just before the capture, which the old rule counted. Its last row (frame 4200) is a cycle start whose own duration lies after the capture, which the new rule can't see. Every one of the 30 captured cycles stalled. In the S1–S4 batches the only frames over 33.3 ms are in `2026-11-21_052736_s4verifygc` (U1 at 100,000 with verification on), and both rules give it 10 hitches, so those committed records stand. `check_batch.py` reports GameThreadTime on request frames for the same reason.
+2. **A percentile of a sparse column is 0.** The first summaries showed "Cluster ms p95" = 0.000 everywhere, because `ClusterMs` is non-zero on one frame in 120. The column is now the maximum (U1 at 100,000: 1,466.6 [1,458.6–1,544.9] ms). The rewritten summaries come from the same re-analysis; no run was repeated.
+
+**Audit trail (S6, tools only):** the three fixes above: the hitch rule in `csv_stats.py` (its self-test now places the long frame's duration in the next row, and fails under the old rule); the summary's cluster column, `--resummarize` and `--reanalyse` in `run_bench.py`; request-frame `ClusterMs` and GameThreadTime in `check_batch.py`. Checked with a structured self-review, the self-test, and by rerunning the tools on the recorded batches.

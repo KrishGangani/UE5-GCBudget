@@ -21,7 +21,9 @@ Rules (documented so every number can be reproduced):
       a cycle      = a cycle-start frame plus the GC frames that follow it without a gap (incremental slices, purge);
                      a cycle cut off by the start or the end of the capture is partial and left out of cycle statistics
       GC spike     = a GC frame with GC ms > SPIKE_MS (5 ms: 5.8.4's default incremental slice)
-      GC hitch     = a GC frame with FrameTime > HITCH_MS (33.33 ms: two 60 Hz frames)  (metric M3, both per minute)
+      GC hitch     = a GC frame that itself lasted > HITCH_MS (33.33 ms: two 60 Hz frames)  (metric M3, both per minute).
+                     A frame's own duration is the NEXT row's FrameTime: the CSV profiler measures FrameTime at the start
+                     of a frame, for the frame before it (CsvProfiler.cpp:150-155, 4369-4390)
       minutes      = captured frames / FPS / 60 (fixed-step runs simulate exactly 1/FPS per frame)
 """
 from __future__ import annotations
@@ -173,7 +175,8 @@ def gc_metrics(header: list[str], rows: list[list[str]], fps: float = FPS) -> di
             continue
         ms = max(0.0, bracket[i] - floor) if floor is not None else bracket[i]
         gc_ms.append(ms)
-        if frame_time[i] is not None and frame_time[i] > HITCH_MS:
+        own_duration = frame_time[i + 1] if i + 1 < len(rows) else None   # FrameTime of row i+1 = frame i (docstring)
+        if own_duration is not None and own_duration > HITCH_MS:
             hitches += 1
         if starts[i] > 0.0 or current is None:
             # A new cycle starts here (or the capture began mid-cycle, which is counted as a partial cycle).
@@ -238,7 +241,8 @@ def selftest() -> None:
 
     # GC metrics on 8 hand-made frames. Non-GC brackets 0.10, 0.20, 0.30 -> floor 0.20.
     # Cycle 1: start frame (bracket 6.20 -> 6.0 ms, pause 5.9) + one purge frame (1.20 -> 1.0 ms).
-    # Cycle 2: start frame (2.20 -> 2.0 ms, FrameTime 40 -> a hitch), then a non-GC frame ends it.
+    # Cycle 2: start frame (2.20 -> 2.0 ms; it lasted 40 ms, which the NEXT row's FrameTime holds -> a hitch), then a
+    # non-GC frame ends it. Row 5's own FrameTime (10) is the frame before, so it must not count.
     # Frame 0 is a GC frame without a start: a partial cycle (the capture began mid-cycle), excluded from cycle stats.
     h = ["FrameTime", BRACKET, GC_FRAME, CYCLE_STARTS, CYCLE_PAUSE, ENGINE_GC_COUNT]
     r = [["10", "1.20", "1", "0", "0", ""],     # partial cycle: 1.0 ms
@@ -246,8 +250,8 @@ def selftest() -> None:
          ["10", "6.20", "1", "1", "5.9", "1"],  # cycle 1 start: 6.0 ms -> spike
          ["10", "1.20", "1", "0", "0", ""],     # cycle 1 purge: 1.0 ms
          ["10", "0.20", "0", "0", "0", ""],
-         ["40", "2.20", "1", "1", "2.1", "1"],  # cycle 2 start: 2.0 ms, hitch
-         ["10", "0.30", "0", "0", "0", ""],
+         ["10", "2.20", "1", "1", "2.1", "1"],  # cycle 2 start: 2.0 ms, hitch (its duration is in the next row)
+         ["40", "0.30", "0", "0", "0", ""],     # FrameTime 40 = the duration of row 5's frame
          ["10", "-1", "0", "0", "0", ""]]       # bracket not opened: ignored for the floor
     g = gc_metrics(h, r, fps=60.0)
     assert abs(g["floor_ms"] - 0.20) < 1e-12 and g["floor_samples"] == 3
