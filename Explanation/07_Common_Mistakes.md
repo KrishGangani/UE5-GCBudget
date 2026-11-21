@@ -1,6 +1,6 @@
 # 07 · Common Mistakes: GCBudget
 
-**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S3. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
+**Rule:** every mistake listed here was either made in this project (and says when) or is a known trap verified in the engine source (and cites it). For each one: how to spot it, how to prevent it, how to debug it. **Current to:** Phase 5 step S4. The GC-specific traps that Phase 5 code must avoid are listed in advance in §2, from the Phase 2 research.
 
 ---
 
@@ -58,3 +58,16 @@
 | Incrementing a generation without a wrap check | Signed overflow is undefined behaviour; a wrap to 0 would also revalidate default handles | Only after 2³¹ releases of one slot, so practically never in a test | `Release` wraps `MAX_int32` to 1 explicitly (`04` §16; `05` D2) |
 | Tests that only cover the obvious cases | Allocators fail on rare interleavings of allocate and release | A test suite that passes while real use corrupts state | One million random operations against a simple model, from a fixed seed, so a failure is reproducible (`04` §20; `05` D3) |
 | Trusting a test run's console output instead of its exit code | A run with failures still prints a lot of normal-looking output | A queue job "ok" with failing tests | `run_tests.bat` returns the editor's exit code, which is non-zero after any failure (`06` §18) |
+
+## 5. The workload and the UObject stores (S4)
+
+| Mistake | Why it is wrong | How to spot it | Prevention in this project |
+|---|---|---|---|
+| A new object in a clustered page that is **not** in the page's cluster | The GC never traces a cluster root's own references (`GarbageCollection.cpp:3130–3139`). An object only the root points at is freed, and the root's array keeps a dangling pointer | A crash or a wrong checksum after a GC that didn't follow a rebuild | *(Found in review, before the first build.)* Every replacement item in U1 joins its page's cluster at once with `AddToCluster(Page)` (`05` E5) |
+| Calling `CreateCluster` with `gc.CreateGCClusters 0` | It asserts (`UObjectClusters.cpp:929`) | A crash on U1's first rebuild | `PrepareForGC` checks the variable and logs an error once per store instead (`05` E5) |
+| Counting a cluster `CreateCluster` silently freed | Below `gc.MinGCClusterSize` (5 in `BaseEngine.ini:1753`) the cluster is freed with no message (`UObjectClusters.cpp:958–995`) | A report claiming more clusters than exist | *(Found in review.)* Count a rebuild only if the page has a cluster afterwards (`05` E5) |
+| A floating-point workload | The stores' loops are compiled separately; vectorisation and fused multiply-adds can round differently, so the same math gives different bits per store | Checksums that differ between configurations doing the same work | Integer ticks and Q16.16 fixed point (`04`; `05` E2) |
+| Expiring an item without `MarkAsGarbage()` | Until the next GC its object still exists, so a weak reference to it still resolves | Probe lookups that find expired items | Expiry calls `MarkAsGarbage()`; a weak pointer then fails at once (`WeakObjectPtr.h:214–218`) |
+| Strong references in the lookup probe | A `TObjectPtr` keeps the expired object alive, so the GC can't collect it | Garbage that never goes away; a growing UObject count | The probe uses `TWeakObjectPtr`, not as a `UPROPERTY` (`05` E5) |
+| A long GC interval with a million UObjects | Garbage builds up between cycles (1% of the items per second); past 2,097,152 objects the cooked game stops with a fatal error | "Maximum number of UObjects exceeded" | *(Found in review.)* `-GCBGCFrames` is capped at 3,600 and `-GCBItems` at 1,000,000 (`05` E6) |
+| A function-level `static` as a "warn once" flag | It lives for the whole process, so later runs in the same editor session stay silent | A second PIE run with the same problem logs nothing | *(Found in review.)* The flag is a member of the store (`05` E5) |

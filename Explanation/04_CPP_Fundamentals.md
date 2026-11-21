@@ -1,6 +1,6 @@
 # 04 · C++ Fundamentals: GCBudget
 
-**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S3. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
+**Rule:** this file explains the general language features the project's code relies on, in the order they first appear. Unreal-specific APIs are in `06`. **Current to:** Phase 5 step S4. Sections 1–5 cover the foundation (mostly C# build rules, Windows batch and Python); sections 6 onward add the C++ each Phase 5 step introduces.
 
 ---
 
@@ -107,7 +107,7 @@
 
 ## 13. Lambdas are not used yet
 
-S1 needs no lambdas. They arrive in S4 (the probe loop), where they are explained with the code.
+S1 needs no lambdas. They arrive in S4 (the probe loop): §23.
 
 ## C++ added in step S3 (handles and their tests)
 
@@ -148,3 +148,45 @@ S1 needs no lambdas. They arrive in S4 (the probe loop), where they are explaine
 
 - The random test drives the allocator with one million random operations from a **fixed seed** (`FRandomStream(1234)`), so every run performs the same sequence and a failure can be reproduced.
 - After each operation it compares the allocator with a deliberately simple **model**: an array of live handles and a sample of dead ones. The model is too slow for real use but obviously correct, so any disagreement is a bug in the allocator.
+
+## C++ added in step S4 (the workload and the UObject stores)
+
+## 21. Abstract classes and pure virtual functions
+
+- `UGCBItemStore` declares `Update`, `RunProbe`, `Checksum`, `PopulateItems` and `CaptureProbeRef` as functions every store **must** provide. In plain C++ that is `virtual int32 Update(int32) = 0;`, which makes the class abstract: it can't be instantiated.
+- Unreal must be able to construct every `UCLASS`, at least once, for its default object. So it uses `PURE_VIRTUAL(Name, return 0;)` instead: a body that stops the program with a fatal error if it is ever called (`06` §20), and `UCLASS(Abstract)` so the editor never offers the class itself.
+
+## 22. Function templates and member templates
+
+- `template <typename ResolveFunction> FGCBProbeResult ProbeLoop(int32 Lookups, ResolveFunction&& Resolve)` is a **template**: the compiler generates one version of the function for each type it is called with.
+- Each store passes its own lambda (§23). Every lambda has its own type, so each store gets its own copy of the loop with that store's lookup **inlined** into it: no function-pointer or virtual call per lookup.
+- `ResolveFunction&&` on a template parameter is a *forwarding reference*: it accepts a temporary lambda without copying it.
+
+## 23. Lambdas
+
+- `[this](int32 PoolIndex, int32& OutMagnitude) -> int32 { … }` is an unnamed function object written where it is used.
+  - `[this]` *captures* the store, so the body can use its members (`ProbeRefs`, `Slots`).
+  - `-> int32` names the return type.
+- In S5's struct stores, `[this, &Items]` also captures the item array by reference. That is safe because the lambda is called only inside `ProbeLoop` and never outlives the array.
+
+## 24. Fixed-point arithmetic and 64-bit intermediates
+
+- Q16.16 stores a number times 65,536 in an `int32`: 64.0 is `64 << 16`. Addition and subtraction are ordinary integer operations.
+- A product of two Q16.16 values has 32 fractional bits and can overflow 32 bits. `AgeItem` therefore multiplies in `int64` and shifts right by 16 to get back to Q16.16.
+- *Why not `float`?* The same formula, compiled into different loops (one per store), can be vectorised or contracted into fused multiply-adds differently, and round differently. Integer arithmetic is exact, so every store computes the same bits and the checksum can prove the work was identical.
+
+## 25. Unsigned arithmetic for hashing, and `static_cast`
+
+- Unsigned integers wrap around by definition (modulo 2³²); signed ones must not overflow (§16). The workload's hash (`Hash32`, MurmurHash3's finaliser) therefore works on `uint32` and relies on that wrap.
+- `static_cast<uint32>(Lane)` is an explicit, compile-time-checked conversion. It makes every signed/unsigned change visible in the code, instead of happening implicitly.
+
+## 26. Integer division and remainder for paging
+
+- `Lane / UGCBItemPage::Capacity` is the page and `Lane % UGCBItemPage::Capacity` the slot in it. Integer division rounds toward zero, so with non-negative lanes the two together address every lane exactly once.
+- `(NumLanes + Capacity - 1) / Capacity` is the usual way to round a division **up**: the number of pages needed for `NumLanes` items.
+
+## 27. `static` locals and why the review removed one
+
+- A `static` variable inside a function is initialised once, the first time the function runs, and then lives until the program ends (thread-safe since C++11).
+- `PrepareForGC` keeps one for the console-variable lookup: that pointer is the same for the whole process.
+- The first version also kept a "warned already" flag that way. Because it lives as long as the process, a second run in the same editor session would have stayed silent, so the flag became a member of the store.

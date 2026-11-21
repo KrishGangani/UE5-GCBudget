@@ -4,8 +4,9 @@ Adapted from the portfolio's reference project (UE5-UpdateBudget, Tools/run_benc
 standalone. Run it through the machine-wide UE job queue, never directly.
 
 Usage:
-    python -I -u run_bench.py --configs E0 --items 0 [--runs N] [--capture 60] [--warmup 10] [--gc-frames 120]
-                              [--label NAME] [--trace] [--extra "ARGS"] [--no-prime] [--dry-run]
+    python -I -u run_bench.py --configs E0,U0,U1,U2 --items 10000[,100000] [--runs N] [--capture 60] [--warmup 10]
+                              [--gc-frames 120] [--seed 1] [--label NAME] [--trace] [--verify-gc] [--extra "ARGS"]
+                              [--no-prime] [--dry-run]
 
 What one batch does:
   1. Pins ITSELF to the performance cores (pin_self) before anything else, so every game it starts inherits the mask
@@ -13,7 +14,8 @@ What one batch does:
   2. Runs one PRIMING run first (discarded) so file, driver and PSO caches are warm for every measured run.
   3. Runs every (config x items) combination --runs times, INTERLEAVED: the config order rotates every round, so
      thermal drift spreads over all configs. The default --runs is the number of configs, so every config sits in
-     every order position exactly once (portfolio protocol).
+     every order position exactly once (portfolio protocol). E0 has no items: it runs once per round, at N = 0,
+     whatever --items says.
   4. Before each run, deletes the build's GameUserSettings.ini (it can override VSync / frame-rate caps).
   5. Launches the real game exe directly (not the bootstrap), waits with a timeout, and kills the process tree in
      `finally`, so a failed or hung run never survives into the next one.
@@ -22,9 +24,13 @@ What one batch does:
      The manifest is rewritten after every run, so a crash loses nothing.
   7. Writes Benchmarks/Summaries/<batch>_summary.md: per combination, the median across runs of each run's statistic,
      with [min-max across runs].
+  8. Cross-checks the end-of-run checksums: every run with the same items, seed and frame count must report the same
+     checksum, whatever its configuration (success criterion SC7). A mismatch, a probe error, or a GC request that
+     didn't start a cycle fails the batch.
 
-Every run uses: fixed step (-deterministic -FPS=60), real GPU at 1280x720 windowed, no VSync, no sound, -NoVerifyGC,
-and a capture window started/stopped by the game's BenchStart/BenchEnd events. Untraced runs add -traceautostart=0;
+Every run uses: fixed step (-deterministic -FPS=60), real GPU at 1280x720 windowed, no VSync, no sound, -NoVerifyGC
+(--verify-gc swaps it for -VERIFYGC: a diagnostic run, never a timed one), and a capture window started/stopped by
+the game's BenchStart/BenchEnd events. Untraced runs add -traceautostart=0;
 traced runs (--trace) leave it out, because it would also block the requested trace.
 """
 from __future__ import annotations
@@ -59,7 +65,11 @@ ENGINE_BUILD_VERSION = r"C:\Program Files\Epic Games\UE_5.8\Engine\Build\Build.v
 STARTUP_MARGIN_SECONDS = 180.0  # generous allowance for engine start, populating items and shutdown
 
 COMMON_ARGS = ("-windowed -ResX=1280 -ResY=720 -nosound -unattended -deterministic -FPS=60 -novsync "
-               "-NoVerifyGC -GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd")
+               "-GCBExit -csvStartOnEvent=BenchStart -csvStopOnEvent=BenchEnd")
+# GC verification: off for every timed run (01b #11); --verify-gc turns it on for a diagnostic run. Each switch sets
+# gc.VerifyAssumptions from the command line (Obj.cpp:5915-5944); the director records the value in every capture.
+NO_VERIFY_GC = "-NoVerifyGC"
+VERIFY_GC = "-VERIFYGC"
 # Untraced runs pass -traceautostart=0 so an open Insights can't trace them (TraceAuxiliary.cpp:267-268). Traced runs
 # must NOT pass it: it also blocks the trace that -trace=/-tracefile= request (TraceAuxiliary.cpp:2017-2021).
 NO_AUTO_TRACE = "-traceautostart=0"
@@ -68,9 +78,15 @@ NO_AUTO_TRACE = "-traceautostart=0"
 # in the roadmap step that builds it (03_Implementation_Roadmap.md).
 CONFIGS = {
     "E0": "-GCBConfig=E0",        # no items: the engine's own GC cost in this project
+    "U0": "-GCBConfig=U0",        # one UObject per item, in pages of 1,024
+    "U1": "-GCBConfig=U1",        # U0 + every page a GC cluster, rebuilt before each cycle
+    "U2": "-GCBConfig=U2",        # U0 + incremental reachability (Experimental), 2 ms slices
 }
 
-SUMMARY_COLUMNS = ("GameThreadTime", "FrameTime", "PhysicalUsedMB", csv_stats.UOBJECTS)
+UPDATE_NS = "GCBWorkload/UpdateNsPerItem"
+PROBE_NS = "GCBWorkload/ProbeNsPerLookup"
+CLUSTER_MS = "GCBWorkload/ClusterMs"
+SUMMARY_COLUMNS = ("GameThreadTime", "FrameTime", "PhysicalUsedMB", csv_stats.UOBJECTS, UPDATE_NS, PROBE_NS, CLUSTER_MS)
 
 
 def powershell(command: str) -> str:
@@ -94,8 +110,10 @@ def environment_record(args) -> dict:
         "power_plan": powershell("powercfg /getactivescheme"),
         "on_ac_power": powershell("(Get-CimInstance Win32_Battery | Select-Object -First 1).BatteryStatus") == "2",
         "resolution": "1280x720 windowed, default scalability",
-        "common_args": COMMON_ARGS + ("" if args.trace else " " + NO_AUTO_TRACE),
+        "common_args": " ".join([COMMON_ARGS, VERIFY_GC if args.verify_gc else NO_VERIFY_GC] + ([] if args.trace else [NO_AUTO_TRACE])),
         "traced": args.trace,
+        "gc_verification": args.verify_gc,
+        "seed": args.seed,
         "gc_cadence_frames": args.gc_frames,
         "extra_args": args.extra,
         "cpu_affinity": cpu_affinity.applied_mask(),
@@ -116,7 +134,8 @@ def launch(name: str, config: str, items: int, args) -> tuple[str, int | None, f
     trace_args = (f'-trace=default,counters -tracefile="{os.path.join(RAW_DIR, name + ".utrace")}"' if args.trace
                   else NO_AUTO_TRACE)
     # One string, so quoted arguments reach Unreal exactly as written.
-    command = f'"{EXE}" {COMMON_ARGS} {CONFIGS[config]} {gcb_args} {trace_args} {args.extra}'.strip()
+    verify = VERIFY_GC if args.verify_gc else NO_VERIFY_GC
+    command = f'"{EXE}" {COMMON_ARGS} {verify} {CONFIGS[config]} {gcb_args} {trace_args} {args.extra}'.strip()
     if args.dry_run:
         print("DRY:", command)
         return command, 0, time.time(), 0.0
@@ -178,9 +197,35 @@ def collect(name: str, started: float) -> dict:
 
 
 def is_failure(record: dict) -> bool:
+    report = record.get("report", {})
     return (record.get("exit_code") != 0 or "stats" not in record or record.get("log_errors")
             or record.get("log_missing") or record.get("report_missing") or record.get("finalised") is False
-            or "analysis_error" in record)
+            or "analysis_error" in record
+            or report.get("probe_errors", 0) != 0                                         # a lookup found the wrong item
+            or report.get("gc_requests") != report.get("gc_cycle_starts_observed"))       # a request started no cycle
+
+
+def checksum_groups(records: list[dict]) -> dict[tuple, dict[str, set]]:
+    """(items, seed, frames) -> {config: checksums seen}, over the measured runs that have a store."""
+    groups: dict[tuple, dict[str, set]] = {}
+    for record in records:
+        report = record.get("report")
+        if record.get("priming") or not report or record["config"] == "E0":
+            continue
+        key = (report["items"], report["seed"], report["frames"])
+        groups.setdefault(key, {}).setdefault(record["config"], set()).add(report["checksum"])
+    return groups
+
+
+def checksum_mismatches(groups: dict[tuple, dict[str, set]]) -> list[str]:
+    """Every run in a group must report one and the same checksum, whatever its configuration (SC7)."""
+    problems = []
+    for (items, seed, frames), by_config in sorted(groups.items()):
+        seen = set().union(*by_config.values())
+        if len(seen) != 1:
+            problems.append(f"N={items} seed={seed} frames={frames}: " +
+                            ", ".join(f"{c} {sorted(v)}" for c, v in sorted(by_config.items())))
+    return problems
 
 
 def write_manifest(batch: str, environment: dict, records: list[dict]) -> None:
@@ -209,8 +254,9 @@ def write_summary(batch: str, environment: dict, records: list[dict]) -> str:
              "Each cell: median across runs of each run's statistic, then [min-max across runs]. GC metrics as defined in "
              "`Tools/csv_stats.py` (01b_Research_Findings.md section 4).", "",
              "| Config | N | Runs | Cycles | Cycle pause p95 / max (ms) | GC frame ms p95 / max | Spikes /min | Hitches /min | "
-             "Floor (ms) | UObjects | PhysicalUsedMB | GameThreadTime median (ms) | Log errors |",
-             "|" + "---|" * 13]
+             "Floor (ms) | UObjects | PhysicalUsedMB | GameThreadTime median (ms) | Update ns/item | Probe ns/lookup | "
+             "Cluster ms p95 | Probe errors | Log errors |",
+             "|" + "---|" * 17]
     for (config, items), group in sorted(groups.items(), key=lambda kv: (kv[0][1], kv[0][0])):
         gc = [g["gc"] for g in group]
 
@@ -227,8 +273,22 @@ def write_summary(batch: str, environment: dict, records: list[dict]) -> str:
             across_runs(stat(csv_stats.UOBJECTS, "median"), 0),
             across_runs(stat("PhysicalUsedMB", "median"), 1),
             across_runs(stat("GameThreadTime", "median")),
+            across_runs(stat(UPDATE_NS, "median"), 2),
+            across_runs(stat(PROBE_NS, "median"), 2),
+            across_runs(stat(CLUSTER_MS, "p95")),
+            str(sum(g.get("report", {}).get("probe_errors", 0) for g in group)),
             str(sum(g.get("log_errors", 0) for g in group)) + " |",
         ]))
+    groups_by_checksum = checksum_groups(records)
+    if groups_by_checksum:
+        lines += ["", "## Checksums (SC7)", "",
+                  "Every measured run with the same items, seed and frame count, per configuration:", "",
+                  "| N | Seed | Frames | Checksums per configuration | Equal |", "|---|---|---|---|---|"]
+        for (items, seed, frames), by_config in sorted(groups_by_checksum.items()):
+            equal = len(set().union(*by_config.values())) == 1
+            lines.append(f"| {items} | {seed} | {frames} | " +
+                         "; ".join(f"{c}: {', '.join(sorted(v))}" for c, v in sorted(by_config.items())) +
+                         f" | {'yes' if equal else '**NO**'} |")
     lines += ["", f"Raw files: `Benchmarks/Raw/{batch}_*` (CSV, run report and log per run) and `{batch}_manifest.json`."]
     path = os.path.join(SUMMARY_DIR, batch + "_summary.md")
     with open(path, "w", encoding="utf-8") as handle:
@@ -248,6 +308,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--cooldown", type=float, default=5.0)
     parser.add_argument("--label", default="")
     parser.add_argument("--trace", action="store_true", help="also write an Insights trace per run (-trace=default,counters)")
+    parser.add_argument("--verify-gc", action="store_true", help="-VERIFYGC instead of -NoVerifyGC (diagnostic runs only)")
     parser.add_argument("--extra", default="", help="extra command-line arguments for every run (diagnostic batches)")
     parser.add_argument("--no-prime", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
@@ -260,6 +321,8 @@ def main(argv: list[str]) -> int:
     if unknown:
         parser.error(f"unknown config(s) {unknown}; available: {sorted(CONFIGS)}")
     item_counts = [int(n) for n in args.items.split(",") if n.strip()]
+    if any(c != "E0" for c in configs) and not all(n > 0 for n in item_counts):
+        parser.error("U0, U1 and U2 need --items > 0 (E0 always runs at N = 0)")
     if args.runs <= 0:
         args.runs = len(configs)
     elif args.runs % len(configs):
@@ -297,24 +360,40 @@ def main(argv: list[str]) -> int:
                   flush=True)
             time.sleep(args.cooldown)
 
+    def combinations(round_configs: list[str]) -> list[tuple[str, int]]:
+        """This round's (config, items) runs in order; E0 has no items, so it runs once, at N = 0."""
+        ordered: list[tuple[str, int]] = []
+        for items in item_counts:
+            for config in round_configs:
+                combo = (config, 0 if config == "E0" else items)
+                if combo not in ordered:
+                    ordered.append(combo)
+        return ordered
+
     if not args.no_prime:
-        run(configs[0], min(item_counts), 0, priming=True)
+        run(*combinations(configs)[0], 0, priming=True)
 
     for run_index in range(1, args.runs + 1):
         rotation = (run_index - 1) % len(configs)
         round_configs = configs[rotation:] + configs[:rotation]       # interleave: rotate the order every round
-        for items in item_counts:
-            for config in round_configs:
-                run(config, items, run_index)
+        for config, items in combinations(round_configs):
+            run(config, items, run_index)
 
     if args.dry_run:
         return 0
     print("summary:", write_summary(batch, environment, records))
     failures = [r["name"] for r in records if not r.get("priming") and is_failure(r)]
+    groups = checksum_groups(records)
+    mismatches = checksum_mismatches(groups)
+    for (items, seed, frames), by_config in sorted(groups.items()):
+        print(f"  checksums N={items} seed={seed} frames={frames}: " +
+              "; ".join(f"{c} {', '.join(sorted(v))}" for c, v in sorted(by_config.items())))
     if failures:
-        print("ATTENTION - runs with a non-zero exit, timeout, no/partial capture, missing log/report or log errors:", failures)
-        return 1
-    return 0
+        print("ATTENTION - runs with a non-zero exit, timeout, no/partial capture, missing log/report, log errors, "
+              "probe errors or a GC request without a cycle:", failures)
+    if mismatches:
+        print("ATTENTION - checksum mismatch (the configurations did different work):", mismatches)
+    return 1 if failures or mismatches else 0
 
 
 if __name__ == "__main__":

@@ -4,9 +4,13 @@
 
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "GCBItemDef.h"
+#include "GCBObjectItemStore.h"
 #include "GCBudgetTelemetrySubsystem.h"
+#include "GCBWorkload.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformMisc.h"
+#include "HAL/PlatformTime.h"
 #include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
@@ -18,7 +22,7 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogGCBBench, Log, All);
 
-// Workload columns (GCBWorkload/Items, /GCTrigger) and the capture events BenchStart / BenchEnd.
+// Workload columns (GCBWorkload/Items, /Expired, /UpdateMs, ...) and the capture events BenchStart / BenchEnd.
 CSV_DEFINE_CATEGORY(GCBWorkload, true);
 
 namespace GCBBench
@@ -26,8 +30,20 @@ namespace GCBBench
 	/** Parks the engine's own GC timer so only the director starts cycles (02_System_Architecture.md section 6). */
 	const TCHAR* const ParkedTimerSeconds = TEXT("3600");
 
+	/** U2's incremental reachability slice: Epic's documented example, 2 ms (02 section 7). */
+	const TCHAR* const IncrementalTimeLimit = TEXT("0.002");
+
 	/** Frames to wait after BenchEnd before quitting, so the CSV profiler finishes writing its file. */
 	constexpr int32 ExitDelayFrames = 3;
+
+	/**
+	 * Largest store and longest GC interval accepted. Together they keep U0's peak object count below the cooked
+	 * game's 2,097,152-object limit (UObjectBase.cpp:1363, and the packaged log): 1,000,000 live items, plus at most 61.1 s of garbage at 1% per second (the engine
+	 * timer when -GCBGCFrames=0; 3600 frames is 60 s) = 611,000, plus 977 pages and about 35,500 engine objects,
+	 * is about 1.65 million.
+	 */
+	constexpr int32 MaxItems = 1000000;
+	constexpr int32 MaxGCFrames = 3600;
 
 	/**
 	 * Sets a console variable from code (the highest priority short of the console) and records the value now in
@@ -124,6 +140,7 @@ UGCBBenchmarkSubsystem::FRunSettings UGCBBenchmarkSubsystem::ReadRunSettings()
 	FParse::Value(CommandLine, TEXT("GCBItems="), Read.Items);
 	FParse::Value(CommandLine, TEXT("GCBSeed="), Read.Seed);
 	FParse::Value(CommandLine, TEXT("GCBGCFrames="), Read.GCFrames);
+	FParse::Value(CommandLine, TEXT("GCBProbe="), Read.ProbeLookups);
 	FParse::Value(CommandLine, TEXT("GCBWarmup="), Read.WarmupSeconds);
 	FParse::Value(CommandLine, TEXT("GCBCapture="), Read.CaptureSeconds);
 	FParse::Value(CommandLine, TEXT("GCBRunTag="), Read.RunTag);
@@ -134,9 +151,18 @@ UGCBBenchmarkSubsystem::FRunSettings UGCBBenchmarkSubsystem::ReadRunSettings()
 
 EGCBConfig UGCBBenchmarkSubsystem::ParseConfig(const FString& Name)
 {
-	if (Name.Equals(TEXT("E0"), ESearchCase::IgnoreCase))
+	static const TPair<const TCHAR*, EGCBConfig> Known[] = {
+		{ TEXT("E0"), EGCBConfig::E0 },
+		{ TEXT("U0"), EGCBConfig::U0 },
+		{ TEXT("U1"), EGCBConfig::U1 },
+		{ TEXT("U2"), EGCBConfig::U2 },
+	};
+	for (const TPair<const TCHAR*, EGCBConfig>& Entry : Known)
 	{
-		return EGCBConfig::E0;
+		if (Name.Equals(Entry.Key, ESearchCase::IgnoreCase))
+		{
+			return Entry.Value;
+		}
 	}
 	return EGCBConfig::None;
 }
@@ -146,7 +172,7 @@ bool UGCBBenchmarkSubsystem::ValidateRunSettings() const
 	bool bValid = true;
 	if (Settings.Config == EGCBConfig::None)
 	{
-		UE_LOG(LogGCBBench, Error, TEXT("-GCBConfig=%s is unknown or not built yet (this build supports: E0)."), *Settings.ConfigName);
+		UE_LOG(LogGCBBench, Error, TEXT("-GCBConfig=%s is unknown or not built yet (this build supports: E0, U0, U1, U2)."), *Settings.ConfigName);
 		bValid = false;
 	}
 	if (Settings.Config == EGCBConfig::E0 && Settings.Items != 0)
@@ -154,10 +180,22 @@ bool UGCBBenchmarkSubsystem::ValidateRunSettings() const
 		UE_LOG(LogGCBBench, Error, TEXT("E0 is the no-item configuration, but -GCBItems=%d was given."), Settings.Items);
 		bValid = false;
 	}
-	if (Settings.WarmupSeconds < 0.0 || Settings.CaptureSeconds <= 0.0 || Settings.GCFrames < 0)
+	if (Settings.Config != EGCBConfig::E0 && Settings.Config != EGCBConfig::None && (Settings.Items < 1 || Settings.Items > GCBBench::MaxItems))
 	{
-		UE_LOG(LogGCBBench, Error, TEXT("Invalid run timing: warm-up %.3f s, capture %.3f s, GC every %d frames (need warm-up >= 0, capture > 0, frames >= 0)."),
-			Settings.WarmupSeconds, Settings.CaptureSeconds, Settings.GCFrames);
+		UE_LOG(LogGCBBench, Error, TEXT("-GCBItems=%d is outside 1..%d for config %s."), Settings.Items, GCBBench::MaxItems, *Settings.ConfigName);
+		bValid = false;
+	}
+	if (Settings.WarmupSeconds < 0.0 || Settings.CaptureSeconds <= 0.0 || Settings.GCFrames < 0 || Settings.GCFrames > GCBBench::MaxGCFrames || Settings.ProbeLookups < 0)
+	{
+		UE_LOG(LogGCBBench, Error, TEXT("Invalid run settings: warm-up %.3f s, capture %.3f s, GC every %d frames, %d lookups (need warm-up >= 0, capture > 0, frames 0..%d, lookups >= 0)."),
+			Settings.WarmupSeconds, Settings.CaptureSeconds, Settings.GCFrames, Settings.ProbeLookups, GCBBench::MaxGCFrames);
+		bValid = false;
+	}
+	if (Settings.Config == EGCBConfig::U1 && Settings.GCFrames == 0)
+	{
+		// U1 rebuilds its clusters only before the cycles the director requests; under the engine's own timer the
+		// expired items would stay in their clusters for the whole run.
+		UE_LOG(LogGCBBench, Error, TEXT("U1 needs the director's GC cadence (-GCBGCFrames > 0)."));
 		bValid = false;
 	}
 	return bValid;
@@ -175,14 +213,50 @@ void UGCBBenchmarkSubsystem::ApplyGCSettings()
 		GCBBench::RecordConsoleVariable(TEXT("gc.TimeBetweenPurgingPendingKillObjects"));
 	}
 
+	if (Settings.Config == EGCBConfig::U2)
+	{
+		SetGCVariable(TEXT("gc.AllowIncrementalReachability"), TEXT("1"));
+		SetGCVariable(TEXT("gc.IncrementalReachabilityTimeLimit"), GCBBench::IncrementalTimeLimit);
+	}
+	else
+	{
+		GCBBench::RecordConsoleVariable(TEXT("gc.AllowIncrementalReachability"));
+		GCBBench::RecordConsoleVariable(TEXT("gc.IncrementalReachabilityTimeLimit"));
+	}
+
 	// Settings every configuration shares, recorded so each capture states its own GC environment.
 	// gc.VerifyAssumptions must read 0 in timed runs: -NoVerifyGC (01b_Research_Findings.md #11).
 	GCBBench::RecordConsoleVariable(TEXT("gc.VerifyAssumptions"));
 	GCBBench::RecordConsoleVariable(TEXT("gc.AllowParallelGC"));
 	GCBBench::RecordConsoleVariable(TEXT("gc.CreateGCClusters"));
-	GCBBench::RecordConsoleVariable(TEXT("gc.AllowIncrementalReachability"));
-	GCBBench::RecordConsoleVariable(TEXT("gc.IncrementalReachabilityTimeLimit"));
 	GCBBench::RecordConsoleVariable(TEXT("gc.IncrementalGCTimePerFrame"));
+}
+
+void UGCBBenchmarkSubsystem::CreateWorkload()
+{
+	// The shared definitions exist in every configuration (E0 included), so the object counts compare like for like.
+	Definitions.Reserve(GCBWorkload::NumDefinitions);
+	for (int32 Index = 0; Index < GCBWorkload::NumDefinitions; ++Index)
+	{
+		UGCBItemDef* Def = NewObject<UGCBItemDef>(this);
+		Def->Index = Index;
+		GCBWorkload::MakeDefinition(static_cast<uint32>(Settings.Seed), Index, Def->DecayQ16, Def->BaseMagnitude);
+		Definitions.Add(Def);
+	}
+
+	if (Settings.Config == EGCBConfig::E0)
+	{
+		return;
+	}
+
+	UGCBObjectItemStore* ObjectStore = NewObject<UGCBObjectItemStore>(this);
+	ObjectStore->bClusterPages = (Settings.Config == EGCBConfig::U1);
+	Store = ObjectStore;
+
+	const double Start = FPlatformTime::Seconds();
+	Store->Populate(Settings.Items, static_cast<uint32>(Settings.Seed), Definitions);
+	Totals.PopulateMs = (FPlatformTime::Seconds() - Start) * 1000.0;
+	UE_LOG(LogGCBBench, Display, TEXT("Populated %d items in %.1f ms"), Store->Num(), Totals.PopulateMs);
 }
 
 void UGCBBenchmarkSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -200,6 +274,7 @@ void UGCBBenchmarkSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	}
 
 	ApplyGCSettings();
+	CreateWorkload();
 	BeginPlayTime = InWorld.GetTimeSeconds();
 	Phase = ERunPhase::WarmUp;
 
@@ -209,22 +284,75 @@ void UGCBBenchmarkSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	CSV_METADATA(TEXT("GCBItems"), *FString::FromInt(Settings.Items));
 	CSV_METADATA(TEXT("GCBSeed"), *FString::FromInt(Settings.Seed));
 	CSV_METADATA(TEXT("GCBGCFrames"), *FString::FromInt(Settings.GCFrames));
-	UE_LOG(LogGCBBench, Display, TEXT("Benchmark %s: config %s, %d items, seed %d, GC every %d frames, warm-up %.1f s, capture %.1f s"),
-		*Settings.RunTag, *Settings.ConfigName.ToUpper(), Settings.Items, Settings.Seed, Settings.GCFrames,
+	CSV_METADATA(TEXT("GCBProbe"), *FString::FromInt(Settings.ProbeLookups));
+	UE_LOG(LogGCBBench, Display, TEXT("Benchmark %s: config %s, %d items, seed %d, GC every %d frames, %d lookups per frame, warm-up %.1f s, capture %.1f s"),
+		*Settings.RunTag, *Settings.ConfigName.ToUpper(), Settings.Items, Settings.Seed, Settings.GCFrames, Settings.ProbeLookups,
 		Settings.WarmupSeconds, Settings.CaptureSeconds);
+}
+
+void UGCBBenchmarkSubsystem::UpdateWorkload(float DeltaTime)
+{
+	int32 Expired = 0;
+	double UpdateMs = 0.0;
+	double ProbeNs = 0.0;
+	int32 ProbeErrors = 0;
+
+	if (Store)
+	{
+		// One tick per fixed 60 Hz frame; a variable-step run advances by its own rounded tick count.
+		const int32 Ticks = FMath::Max(1, FMath::RoundToInt32(DeltaTime * GCBWorkload::TicksPerSecond));
+
+		const double UpdateStart = FPlatformTime::Seconds();
+		Expired = Store->Update(Ticks);
+		UpdateMs = (FPlatformTime::Seconds() - UpdateStart) * 1000.0;
+
+		Store->RefreshProbe(FrameIndex);
+		const double ProbeStart = FPlatformTime::Seconds();
+		const FGCBProbeResult Probe = Store->RunProbe(Settings.ProbeLookups);
+		const double ProbeSeconds = FPlatformTime::Seconds() - ProbeStart;
+		ProbeNs = (Settings.ProbeLookups > 0) ? ProbeSeconds * 1.0e9 / Settings.ProbeLookups : 0.0;
+		ProbeErrors = Probe.Errors;
+
+		Totals.Expired += Expired;
+		Totals.ProbeLookups += Settings.ProbeLookups;
+		Totals.ProbeResolved += Probe.Resolved;
+		Totals.ProbeStale += Probe.Stale;
+		Totals.ProbeErrors += Probe.Errors;
+		Totals.ProbeSink += Probe.Sink;
+	}
+
+	const int32 Items = Store ? Store->Num() : 0;
+	CSV_CUSTOM_STAT(GCBWorkload, Items, Items, ECsvCustomStatOp::Set);
+	CSV_CUSTOM_STAT(GCBWorkload, Expired, Expired, ECsvCustomStatOp::Set);
+	CSV_CUSTOM_STAT(GCBWorkload, UpdateMs, UpdateMs, ECsvCustomStatOp::Set);
+	CSV_CUSTOM_STAT(GCBWorkload, UpdateNsPerItem, (Items > 0) ? UpdateMs * 1.0e6 / Items : 0.0, ECsvCustomStatOp::Set);
+	CSV_CUSTOM_STAT(GCBWorkload, ProbeNsPerLookup, ProbeNs, ECsvCustomStatOp::Set);
+	CSV_CUSTOM_STAT(GCBWorkload, ProbeErrors, ProbeErrors, ECsvCustomStatOp::Set);
 }
 
 void UGCBBenchmarkSubsystem::UpdateGCCadence()
 {
 	const bool bRequest = Settings.GCFrames > 0 && FrameIndex % Settings.GCFrames == 0;
+	double ClusterMs = 0.0;
 	if (bRequest)
 	{
+		if (Store)
+		{
+			const double Start = FPlatformTime::Seconds();
+			Store->PrepareForGC();
+			ClusterMs = (FPlatformTime::Seconds() - Start) * 1000.0;
+			if (const UGCBObjectItemStore* ObjectStore = Cast<UGCBObjectItemStore>(Store.Get()))
+			{
+				Totals.ClustersRebuilt += ObjectStore->GetClustersRebuilt();
+			}
+		}
 		// Moves the engine's timer past the interval (UnrealEngine.cpp:2136-2139): this frame's ConditionalCollectGarbage
 		// starts a non-full-purge cycle, or waits until a still-running purge has finished (:2282-2287).
 		GEngine->ForceGarbageCollection(false);
-		++GCRequests;
+		++Totals.GCRequests;
 	}
 	CSV_CUSTOM_STAT(GCBWorkload, GCTrigger, bRequest ? 1 : 0, ECsvCustomStatOp::Set);
+	CSV_CUSTOM_STAT(GCBWorkload, ClusterMs, ClusterMs, ECsvCustomStatOp::Set);
 }
 
 void UGCBBenchmarkSubsystem::Tick(float DeltaTime)
@@ -242,8 +370,8 @@ void UGCBBenchmarkSubsystem::Tick(float DeltaTime)
 
 	if (Phase != ERunPhase::Done)
 	{
+		UpdateWorkload(DeltaTime);
 		UpdateGCCadence();
-		CSV_CUSTOM_STAT(GCBWorkload, Items, Settings.Items, ECsvCustomStatOp::Set);
 	}
 
 	switch (Phase)
@@ -294,20 +422,26 @@ void UGCBBenchmarkSubsystem::WriteRunReport() const
 	const UGCBudgetTelemetrySubsystem* Telemetry = GetWorld()->GetSubsystem<UGCBudgetTelemetrySubsystem>();
 	const int32 CycleStarts = Telemetry ? Telemetry->GetTotalCycleStarts() : -1;
 	const int32 CyclesOutside = Telemetry ? Telemetry->GetCycleStartsOutsideBracket() : -1;
+	const uint32 Checksum = Store ? Store->Checksum() : 0u;
 
 	const FString Report = FString::Printf(
 		TEXT("{\n")
-		TEXT("  \"run\": \"%s\",\n  \"config\": \"%s\",\n  \"items\": %d,\n  \"seed\": %d,\n  \"gc_frames\": %d,\n")
-		TEXT("  \"warmup_s\": %.3f,\n  \"capture_s\": %.3f,\n  \"bench_start_frame\": %lld,\n  \"bench_end_frame\": %lld,\n")
-		TEXT("  \"frames\": %lld,\n  \"gc_requests\": %d,\n  \"gc_cycle_starts_observed\": %d,\n  \"gc_cycle_starts_outside_bracket\": %d\n}\n"),
-		*GCBBench::JsonEscape(Settings.RunTag), *GCBBench::JsonEscape(Settings.ConfigName.ToUpper()), Settings.Items, Settings.Seed, Settings.GCFrames,
-		Settings.WarmupSeconds, Settings.CaptureSeconds, BenchStartFrame, BenchEndFrame,
-		FrameIndex, GCRequests, CycleStarts, CyclesOutside);
+		TEXT("  \"run\": \"%s\",\n  \"config\": \"%s\",\n  \"items\": %d,\n  \"seed\": %d,\n  \"gc_frames\": %d,\n  \"probe_lookups_per_frame\": %d,\n")
+		TEXT("  \"warmup_s\": %.3f,\n  \"capture_s\": %.3f,\n  \"bench_start_frame\": %lld,\n  \"bench_end_frame\": %lld,\n  \"frames\": %lld,\n")
+		TEXT("  \"populate_ms\": %.3f,\n  \"gc_requests\": %d,\n  \"gc_cycle_starts_observed\": %d,\n  \"gc_cycle_starts_outside_bracket\": %d,\n  \"clusters_rebuilt\": %lld,\n")
+		TEXT("  \"expired\": %lld,\n  \"probe_lookups\": %lld,\n  \"probe_resolved\": %lld,\n  \"probe_stale\": %lld,\n  \"probe_errors\": %lld,\n")
+		TEXT("  \"probe_sink\": %lld,\n  \"checksum\": \"0x%08X\"\n}\n"),
+		*GCBBench::JsonEscape(Settings.RunTag), *GCBBench::JsonEscape(Settings.ConfigName.ToUpper()), Settings.Items, Settings.Seed, Settings.GCFrames, Settings.ProbeLookups,
+		Settings.WarmupSeconds, Settings.CaptureSeconds, BenchStartFrame, BenchEndFrame, FrameIndex,
+		Totals.PopulateMs, Totals.GCRequests, CycleStarts, CyclesOutside, Totals.ClustersRebuilt,
+		Totals.Expired, Totals.ProbeLookups, Totals.ProbeResolved, Totals.ProbeStale, Totals.ProbeErrors,
+		Totals.ProbeSink, Checksum);
 
 	const FString Path = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("GCBRuns"), Settings.RunTag + TEXT(".json"));
 	if (FFileHelper::SaveStringToFile(Report, *Path))
 	{
-		UE_LOG(LogGCBBench, Display, TEXT("Run report written: %s"), *FPaths::ConvertRelativePathToFull(Path));
+		UE_LOG(LogGCBBench, Display, TEXT("Run report written: %s (checksum 0x%08X, probe errors %lld)"),
+			*FPaths::ConvertRelativePathToFull(Path), Checksum, Totals.ProbeErrors);
 	}
 	else
 	{

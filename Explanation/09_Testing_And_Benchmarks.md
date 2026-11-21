@@ -162,3 +162,31 @@ S3 (plugin) and S4 (game module) were built and checked in **one** queue job and
 | S3-3 | The handle tests | `Tools\run_tests.bat GCBudget` | ✅ "Found 6 automation tests based on 'GCBudget'"; all six `Result={Success}` (`DefaultIsInvalid`, `AllocateResolve`, `ReleaseMakesStale`, `LifoReuseNewGeneration`, `Reset`, `RandomAgainstModel`: 1,000,000 operations, 0 mismatches); "TEST COMPLETE. EXIT CODE: 0" |
 
 **Audit trail (S3 code):** the review (the code-review skill at medium, over all of the staged S3–S5 code before the first build) found nothing in the S3 code. The clean-up pass changed nothing in it either.
+
+### S4 · The workload and the UObject stores, U0 / U1 / U2 (2026-11-21)
+
+Built and checked in job 9 with S3 (above). Functional checks use 5 s of warm-up and 20 s of capture; they are checks, not measurements.
+
+| # | Check | Command | Result (job 9) |
+|---|---|---|---|
+| S4-1 | Package a Development build | `Tools\package.bat Development` | ✅ BUILD SUCCESSFUL, BuildCookRun 59.69 s, cook "0 error(s), 0 warning(s)" |
+| S4-2 | Determinism: the same seed twice, U0 = U1 = U2 (SC7) | `python -I -u Tools\run_bench.py --configs E0,U0,U1,U2 --items 10000 --runs 2 --warmup 5 --capture 20 --label s4det` | ✅ all 9 runs exit 0. All six U runs (N = 10,000, seed 1, 1,501 frames) report checksum **0x83C178D5**, and 2,733 expiries each. The summary's checksum table says "yes". (2 runs per configuration: a check, so the runner's rotation warning applies) |
+| S4-3 | A different seed does different work | `… --configs U0 --items 10000 --runs 1 --no-prime --seed 2 --warmup 5 --capture 20 --label s4seed2` | ✅ checksum **0x51DA406A**, 2,755 expiries |
+| S4-4 | Cadence and counters in every item configuration | `python -I Tools\check_batch.py <batch>` for `2026-11-21_052508_s4det`, `2026-11-21_052719_s4seed2`, `2026-11-21_052736_s4verifygc` | ✅ "all runs pass": 10 cycle starts 120 frames apart on the trigger frames, `GC/Count` 10, 12 requests = 12 cycles in the bracket, 0 outside, 0 log errors |
+| S4-5 | UObject count = E0 + N + pages + store, and expired items are collected | the same, plus the minimum after every cycle | ✅ E0: **35,528**, constant. U0, U1, U2 at 10,000: the post-cycle minimum is **45,539–45,544** in all ten cycles of every run; the formula gives 35,528 + 10,000 + 10 pages + 1 store = **45,539**. The maximum, 45,766, is expired items waiting for the next cycle (≈ 1% per second × 2 s × 10,000 = 200). The count doesn't grow, in U1 too, so the rebuild before each cycle really frees the expired items. At 100,000 (U1): minima 135,638–135,663, against a formula of 135,627; the 11–36 extra are probably items that expired during the purge frames (about 17 per frame at this N) **[inferred]**. E0 is 27 higher than in S1 (35,501): the 16 definitions plus 11, which matches five new classes × (class object + default object) plus the handle's struct type **[inferred]** |
+| S4-6 | U1 builds one cluster per page | the run reports' `clusters_rebuilt` | ✅ 120 = 10 pages × 12 cycles at 10,000; 1,176 = 98 × 12 at 100,000. Every page changed before every cycle, as `02` §7's caveat predicted |
+| S4-7 | `-VERIFYGC` finds no cluster-assumption errors | `… --configs U1 --items 10000,100000 --runs 1 --no-prime --verify-gc --warmup 5 --capture 20 --label s4verifygc` | ✅ both logs read `gc.VerifyAssumptions = true`; 0 errors, 0 warnings; the 10,000 run's checksum equals the unverified runs' (0x83C178D5) |
+| S4-8 | Lookup probe: 0 errors | the run reports | ✅ 1,500,000 lookups per run (1,000 × 1,500 frames), **0 errors**; 96% resolved, the other 4% correctly rejected as stale (59,451 at seed 1) |
+
+**In numbers** (20 s captures; checks, not results): the median cycle pause per run was E0 0.81–0.84 ms (the priming run 0.87), U0 0.92–1.19, U1 1.01–1.13 and U2 1.19–1.28 at 10,000 items. One U0 run and both U2 runs had a single cycle near 3 ms (2.98–3.22), like the occasional slow E0 cycles in S1 (cause still **[unverified]**). With `-VERIFYGC`, U1 rose to 2.9 ms at 10,000 and 12.9 ms at 100,000. That is the verification's own cost, and the reason timed runs use `-NoVerifyGC` (`01b` #11). Populating 10,000 items took 11–20 ms; 100,000 took 179 ms (with verification on).
+
+**Audit trail (S4 code):**
+1. **Review** (the code-review skill at medium, over the staged S3–S5 code before the first build). Seven findings; each engine claim was checked in the source before the fix:
+   - *Important:* in U1, an item created after its page's cluster was built belongs to no cluster. The GC never traces a cluster root's own references (`GarbageCollection.cpp:3130–3139`), so any cycle that didn't follow a rebuild (the engine timer, or a request deferred by a running purge) would free live items while their page still pointed at them. Fixed: every replacement item joins its page's cluster at once (`AddToCluster`, `UObjectClusters.cpp:877–900`), and U1 rejects `-GCBGCFrames=0` (`05` E5, E6; `02` §14).
+   - *Important:* the item limit alone didn't bound the object count, because garbage builds up between cycles. Fixed: `-GCBGCFrames` ≤ 3,600, which keeps U0 near 1.65 million objects, below 2,097,152 (`UObjectBase.cpp:1363`; `05` E6).
+   - `clusters_rebuilt` counted pages whose cluster `CreateCluster` had freed as too small (`UObjectClusters.cpp:958–995`). Fixed: only real clusters are counted (`05` E5).
+   - A second `Populate` kept the old pages and probe references. Fixed: both are reset (`05` E5).
+   - The "clusters disabled" error was logged once per process. Fixed: once per store (`05` E5).
+   - The run tag's JSON escaping (S1 code): fixed in S1 (`09` S1).
+   - A comment in `GCBudget.Build.cs` would become wrong once S5's public header includes a plugin header: handled in S5.
+2. **Clean-up pass** (structured self-review): `Populate` didn't restart the probe cursors, so a second `Populate` with fewer lanes could leave one past the end of the new pool; both are reset now (`05` E4). The probe references are reserved once; the runner builds the checksum groups once per batch.

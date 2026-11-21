@@ -2,7 +2,7 @@
 
 **Rule:** only APIs and macros the project **actually uses** are explained, each in the 8-point format: (1) what it is, (2) why it exists, (3) how it works, (4) when to use it, (5) when not to, (6) common mistakes, (7) a small example, (8) how it applies here. Engine facts cite UE 5.8.4 `File:line`, relative to `Engine/Source/` unless stated.
 
-**Current to:** Phase 5 step S3. Later steps add their APIs in the step that first uses each.
+**Current to:** Phase 5 step S4. Later steps add their APIs in the step that first uses each.
 
 ---
 
@@ -296,3 +296,85 @@
 6. **Common mistakes:** seeding from the clock in a test, which makes a failure impossible to reproduce.
 7. **Example:** `FRandomStream Random(Seed); const int32 Roll = Random.RandRange(0, 99);`
 8. **Here:** the one-million-operation model test. The game's workload uses its own integer hash instead (S4), because it must give every lane its values independently of call order.
+
+## APIs added in step S4 (the workload and the UObject stores)
+
+## 20. `UCLASS(Abstract)` and `PURE_VIRTUAL`
+
+1. **What:** a class specifier that marks a UObject class as not to be instantiated in the editor, and a macro for "abstract" virtual functions (`Runtime/Core/Public/Misc/CoreMiscDefines.h:99–103`).
+2. **Why:** C++'s `= 0` would make the class impossible to construct, but Unreal constructs every class's default object.
+3. **How:** normally `PURE_VIRTUAL(Func, return 0;)` expands to a body that calls `LowLevelFatalError` and then runs the given statements. With `CHECK_PUREVIRTUALS` it becomes a real `= 0`, so the compiler finds missing overrides.
+4. **When:** an interface-like UObject base whose subclasses must implement some functions.
+5. **When not:** if a sensible default exists: provide it (as `PrepareForGC() {}` does).
+6. **Common mistakes:** forgetting the return statement for non-`void` functions, which leaves the function without a return value.
+7. **Example:** `virtual int32 Update(int32 Ticks) PURE_VIRTUAL(UMyBase::Update, return 0;);`
+8. **Here:** `UGCBItemStore`.
+
+## 21. `NewObject<T>(Outer)` and the outer chain
+
+1. **What:** the way to create a UObject at run time (`Runtime/CoreUObject/Public/UObject/UObjectGlobals.h:1959`).
+2. **Why:** a UObject needs a slot in the global object array, a name and an **outer** (the object it lives in). `new` can't provide them.
+3. **How:** `NewObject<UGCBItemObject>(Page)` allocates the object, registers it, runs its constructor, and sets `Page` as its outer. The outer chain ends at a package, so the outer decides which package an object belongs to.
+4. **When:** any UObject created during play.
+5. **When not:** plain data without reflection or GC needs: a struct.
+6. **Common mistakes:**
+   - Leaving the outer as the transient package when the object should belong to something.
+   - Creating an object and keeping it only in a non-`UPROPERTY` raw pointer, so the GC frees it.
+7. **Example:** `UMyObject* Object = NewObject<UMyObject>(this);`
+8. **Here:** definitions (outer: the director), the store, pages (outer: the store) and items (outer: their page). Every item is therefore in the world's package, which is one of `CreateCluster`'s conditions (§23).
+
+## 22. `MarkAsGarbage()` and `TWeakObjectPtr<T>`
+
+1. **What:** a call that flags an object as garbage now (`Runtime/CoreUObject/Public/UObject/UObjectBaseUtility.h:207–216`), and a reference that doesn't keep its object alive (`WeakObjectPtr.h:569–575`).
+2. **Why:** gameplay code needs "this is dead" to take effect immediately, long before the next GC cycle frees the memory.
+3. **How:**
+   - `MarkAsGarbage()` sets the object's garbage flag; the next GC cycle won't keep it alive through references and purges it.
+   - A weak pointer stores the object's **index** in the global object array and that slot's **serial number**. `Get()` returns null if the slot now holds another object, or if the object is garbage (`WeakObjectPtr.h:214–218`).
+4. **When:** destroying gameplay objects; observing objects you don't own.
+5. **When not:** on an object in the root set (it asserts, `UObjectBaseUtility.h:209`); for ownership (use a `UPROPERTY` `TObjectPtr`).
+6. **Common mistakes:**
+   - Expecting `MarkAsGarbage` to free memory immediately.
+   - Holding a weak pointer as a `TObjectPtr` "to be safe", which keeps the object alive.
+7. **Example:** `TWeakObjectPtr<UMyObject> Weak = Object; Object->MarkAsGarbage(); check(!Weak.Get());`
+8. **Here:** an item's expiry; the probe's 4,096 references in U0, U1 and U2.
+
+## 23. GC clusters: `CanBeInCluster`, `CreateCluster`, `AddToCluster`, `GUObjectClusters`
+
+1. **What:** the engine's way to treat a group of objects as one unit during reachability analysis (`UObjectBaseUtility.h:420–437`; `UObjectArray.h:1593–1675`).
+2. **Why:** marking one cluster is much cheaper than tracing every object in it.
+3. **How:**
+   - `Root->CreateCluster()` collects everything the root references, transitively, that `CanBeInCluster()`, isn't in another cluster and is in the root's package (`UObjectClusters.cpp:741–751, 927–999`). Anything else it references is recorded as a "mutable" object.
+   - During GC, every member of a kept cluster is marked reachable without being traced (`GarbageCollection.cpp:4324–4346`), and **the root's own references aren't traced either**: only its referenced clusters and mutable objects are (`:3130–3139`).
+   - `Object->AddToCluster(Root)` adds one more object to an existing cluster, collecting its references the same way (`UObjectClusters.cpp:877–900`).
+   - `GUObjectClusters.GetObjectCluster(Object)` returns its cluster or null (`:112–134`); `DissolveCluster(Object)` turns the members back into ordinary objects (`:136–179`).
+   - A cluster smaller than `gc.MinGCClusterSize` (5, `Config/BaseEngine.ini:1753`) is freed silently (`UObjectClusters.cpp:958–995`). `gc.CreateGCClusters` must be on (`BaseEngine.ini:1752`); `CreateCluster` asserts otherwise (`UObjectClusters.cpp:929`).
+4. **When:** large groups of objects that live and die together, loaded or created once.
+5. **When not:** groups whose membership changes all the time. Every change means keeping the cluster correct by hand, and that maintenance is exactly the cost U1 measures.
+6. **Common mistakes:**
+   - Adding an object to the root's array but not to its cluster: the GC frees it (`07` §5).
+   - Letting shared objects join the first cluster that references them.
+   - Assuming a cluster exists after `CreateCluster`.
+7. **Example:** `Page->CreateCluster(); NewItem->AddToCluster(Page); GUObjectClusters.DissolveCluster(Page);`
+8. **Here:** U1 only: one cluster per page of 1,024 items, rebuilt before each requested cycle.
+
+## 24. `FCrc::MemCrc32`
+
+1. **What:** a 32-bit CRC over a block of memory (`Runtime/Core/Public/Misc/Crc.h:29`).
+2. **Why:** a cheap, order-sensitive fingerprint of data.
+3. **How:** `FCrc::MemCrc32(Data, Length, Crc)` continues from a previous CRC, so a long sequence can be folded in piece by piece.
+4. **When:** checksums and change detection.
+5. **When not:** anything security-related (a CRC is easy to forge), or hashing for containers (`GetTypeHash`).
+6. **Common mistakes:** hashing structs that contain padding bytes, whose values are undefined.
+7. **Example:** `uint32 Crc = 0; Crc = FCrc::MemCrc32(&Value, sizeof(Value), Crc);`
+8. **Here:** `GCBWorkload::ChecksumItem` folds five `int32` fields per item (no padding) in lane order.
+
+## 25. `UPROPERTY(Transient)` and `Cast<T>`
+
+1. **What:** a property that is never saved, and a checked downcast between UObject classes (`Runtime/CoreUObject/Public/Templates/Casts.h:89`).
+2. **Why:** GC visibility without serialisation; and a safe way to ask "is this store a `UGCBObjectItemStore`?".
+3. **How:** `Transient` keeps the property in reflection, so the GC still sees the reference, but excludes it from saving. `Cast<T>(Object)` returns null when the object isn't a `T`.
+4. **When:** run-time state owned by a UObject; type checks on UObjects.
+5. **When not:** `Cast` on non-UObject types (use C++ casts).
+6. **Common mistakes:** dropping `UPROPERTY` and keeping a raw pointer, which the GC doesn't see.
+7. **Example:** `if (const UMyStore* S = Cast<UMyStore>(Store.Get())) { … }`
+8. **Here:** the director's `Definitions` and `Store`; reading U1's cluster count for the run report.

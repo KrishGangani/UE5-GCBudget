@@ -8,6 +8,7 @@
 | B | Phase 5, S1 (telemetry + director, E0 only) | `GCBudgetTelemetrySubsystem.h/.cpp` (plugin), `GCBBenchmarkSubsystem.h/.cpp` (game) |
 | C | Phase 5, S2 (measurement tools) | `Tools\csv_stats.py`, `Tools\run_bench.py`, `Tools\validate_bracket.py`, `Tools\check_batch.py` |
 | D | Phase 5, S3 (handles + tests, plugin) | `GCBudgetHandle.h/.cpp`, `Private/Tests/GCBudgetHandleTests.cpp`, `Tools\run_tests.bat` |
+| E | Phase 5, S4 (workload + UObject stores, game) | `GCBItemDef.h`, `GCBWorkload.h/.cpp`, `GCBItemObject.h`, `GCBItemStore.h/.cpp`, `GCBObjectItemStore.h/.cpp`, the director's S4 changes, `Tools\run_bench.py`'s S4 changes |
 
 Engine facts cite `File:line` in UE 5.8.4, relative to `Engine/Source/` unless stated.
 
@@ -408,3 +409,91 @@ Adapted from the reference project's runner. Unchanged parts: the batch name, in
 Runs `UnrealEditor-Cmd <project> -ExecCmds="Automation RunTests GCBudget;Quit" -unattended -nullrhi …`.
 - The engine sets a critical error when any test fails, so the process exits non-zero (`Developer/AutomationController/Private/AutomationCommandline.cpp:491–504`). The queue job therefore fails on a failed test.
 - It captures `%~dp0` first, the Phase 4 lesson (`07` §1).
+
+## Part E · Step S4: the workload and the UObject stores (U0, U1, U2)
+
+### E1. `GCBItemDef.h`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `UCLASS() class UGCBItemDef : public UObject` | Shared definition data stays a UObject in **every** configuration, as an item or effect definition asset would in a game. Only *per-item* state moves to structs |
+| `UPROPERTY() int32 Index` | The definition's position in the table: what S0 items store instead of a pointer, and what the checksum folds in (so U and S stores produce the same CRC) |
+| `UPROPERTY() int32 DecayQ16`, `BaseMagnitude` | The parameters every item reads each frame. Fixed point (E2) |
+| `CanBeInCluster() const override { return false; }` | Keeps definitions out of U1's page clusters. Otherwise the first page's `CreateCluster` would absorb them (they are in the same package and referenced), every later page would reference that page's cluster, and rebuilding page 0 would dissolve every cluster that references it (`UObjectClusters.cpp:136–178, 741–751`). As "mutable objects" outside any cluster, the GC simply visits these 16 objects |
+
+### E2. `GCBWorkload.h` / `.cpp`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `namespace GCBWorkload` | Free functions, not a class: the workload has no state of its own |
+| `NumDefinitions = 16`, `TicksPerSecond = 60`, `MinLifetimeTicks`, `MaxLifetimeTicks` | `01` §6.1's numbers as `constexpr`: 16 definitions; lifetimes uniform in [50, 150] s, so 1% of the items expire per second |
+| `struct FItemParams` | What a new item starts with |
+| `Hash32(X)` | MurmurHash3's 32-bit finaliser: shifts and multiplies that spread consecutive inputs over all 32 bits. `FORCEINLINE`, because it is a handful of instructions |
+| `MakeItemParams(Seed, Lane, Generation)` | A **pure function**: the same arguments always give the same item, whatever the store, its iteration order or its slot reuse. Three chained hashes give the definition, the lifetime and (generation 0 only) a random start point inside the lifetime, so expiries are spread out from the first frame |
+| `MakeDefinition(Seed, DefIndex, …)` | Decay 1–32 / 65536 per tick (0.0015–0.05%) and a start magnitude of 64–127, both from the seed |
+| `MakeSerial(Lane, Generation, NumLanes)` | `Generation × N + Lane`: unique for every item of the run, so the probe can tell whether a reference found *the* item it was taken from |
+| `AgeItem(TicksLeft, Magnitude, DecayQ16, Ticks)` | One tick of work: `TicksLeft -= Ticks`; `Magnitude -= (Magnitude × DecayQ16 × Ticks) >> 16` in 64-bit, so the product can't overflow. Returns "expired" |
+| *Why integer math* | Every store computes **bit-identical** state, whatever its memory layout and the compiler's floating-point choices. The end-of-run checksum can then prove that all configurations did exactly the same work (SC7). Floats could differ by contraction or reassociation between call sites |
+| `ChecksumItem(Crc, …)` | Folds five fields into a running `FCrc::MemCrc32` (`Runtime/Core/Public/Misc/Crc.h:29`). Order-sensitive, so the lanes are always visited in order |
+
+### E3. `GCBItemObject.h`: `UGCBItemObject` and `UGCBItemPage`
+
+| Line(s) | What it does, and why |
+|---|---|
+| `UGCBItemObject : UObject` | U0–U2's item: the same five fields as the structs. Each field is a `UPROPERTY`, as real gameplay code would mark them (reflection, saving). Only `Def` is a reference the GC follows |
+| `UPROPERTY() TObjectPtr<UGCBItemDef> Def` | `TObjectPtr`, never a raw pointer: U2's incremental reachability needs the write barrier (`01b` #9) |
+| `CanBeInCluster() … return true` | Epic's recipe for runtime clusters. The default asks the outer chain, which is fine here too, but stating it makes U1 independent of what the outer classes decide |
+| `UGCBItemPage : UObject`, `Capacity = 1024`, `UPROPERTY() TArray<TObjectPtr<UGCBItemObject>> Items` | Groups items, so a cluster covers 1,024 of them (02 §7). U0 and U2 use the same pages without clusters, so U1 differs **only** by clustering |
+| `bool bChanged = true` | Set when an item is replaced. It starts true, so the first `PrepareForGC` builds every cluster |
+
+### E4. `GCBItemStore.h` / `.cpp`: the store interface
+
+| Line(s) | What it does, and why |
+|---|---|
+| `struct FGCBProbeResult` | Counts for one probe pass. `Sink` sums the magnitudes read, so the compiler can't remove the reads as unused |
+| `UCLASS(Abstract) class UGCBItemStore : public UObject` | A UObject so the director can own it as a `UPROPERTY` and the GC sees everything it references. `Abstract`: it can't be instantiated |
+| `ProbePoolSize = 4096`, `ProbeRefreshPerFrame = 8` | 4,096 stored references, 8 re-pointed per frame, so a reference lives about 8.5 s and some of them see their item expire. Stale-reference detection is exercised every frame |
+| `Populate(Count, Seed, Defs)` (non-virtual) | Sets the lane state, calls the store's `PopulateItems`, then fills the probe pool with references to lanes spread over the store and restarts both probe cursors (*found in the clean-up pass*: without that, a second `Populate` with fewer lanes could leave a cursor past the end of the new pool) |
+| `Update`, `RunProbe`, `Checksum` | `PURE_VIRTUAL(…)`: UObject classes can't be truly abstract in C++ (the engine must be able to construct a class default object), so the macro gives each function a body that asserts if it is ever called |
+| `PrepareForGC()` | A no-op by default; U1 overrides it |
+| `CurrentSerial(Lane)` | The ground truth: which item a lane holds *now* |
+| `NextLife(Lane, OutSerial)` | Advances a lane's generation and returns its next item. The only place a lane changes, so the truth can't drift from the stores |
+| `template <typename ResolveFunction> ProbeLoop(Lookups, Resolve)` | The probe loop all stores share. Each store passes a **lambda** that resolves one reference in its own way; because it's a template, the lambda is inlined into the loop (no virtual call per lookup). Each result is checked: a resolved reference must find its own item's serial, and a rejected one must really be stale |
+| `UPROPERTY() TArray<TObjectPtr<UGCBItemDef>> Defs` | The definitions, held by the store too (as a real store would) |
+| Private `FProbeEntry`, `ProbePool`, cursors, `SetProbeEntry` | The pool's lane/serial records; the concrete store keeps the matching native references |
+
+### E5. `GCBObjectItemStore.h` / `.cpp` (U0, U1, U2)
+
+| Line(s) | What it does, and why |
+|---|---|
+| `bool bClusterPages` | U1's switch, set by the director before `Populate` |
+| `PopulateItems()` | Resets the pages and the probe references, so a second `Populate` starts from scratch like the struct stores (*found in review*). Then creates `ceil(N / 1024)` pages and N items with `NewObject<UGCBItemObject>(Page)`. The page is the outer, so every item is in the world's package and `CreateCluster` may include it (`UObjectClusters.cpp:741–751`) |
+| `CreateItem(...)` | `NewObject` plus the five fields. This is the per-item allocation cost a UObject design pays on every expiry: name, hash entries, object-array slot |
+| `Update(Ticks)` | Pages in order, slots in order (= lane order). `AgeItem` through `Item->Def->DecayQ16`: two pointer reads per item, which is what a UObject design does. On expiry: `NextLife`, **`MarkAsGarbage()`** (so a `TWeakObjectPtr` fails at once, as with a destroyed actor; `UObjectBaseUtility.h:207–216`), a new object in the slot, the page marked changed. **In U1 the new object joins the page's cluster at once** (`AddToCluster(Page)`, `UObjectClusters.cpp:877–900`): the GC never traces a cluster root's own references (`GarbageCollection.cpp:3130–3139`), so an item outside the cluster would be freed while the page still points at it. *Found in review:* the first version relied on the rebuild before each requested cycle, which a GC started any other way (the engine timer under `-GCBGCFrames=0`, a request deferred by a running purge) would not get |
+| `PrepareForGC()` (U1) | Skips unless clustering; refuses to call `CreateCluster` if `gc.CreateGCClusters` is 0 (it would assert, `UObjectClusters.cpp:929`) and logs that once per store (*found in review*: a function-level `static` logged it once per process). For each changed page: `GUObjectClusters.DissolveCluster(Page)` if it has one, then `Page->CreateCluster()` (`UObjectBaseUtility.h:425`; `UObjectArray.h:1593–1650`). The dissolve comes first because a clustered object stays reachable while its cluster is kept (`GarbageCollection.cpp:4324–4346`); the new cluster contains only the items the page references now. A rebuild is counted only if a cluster exists afterwards: `CreateCluster` frees one below `gc.MinGCClusterSize` (`UObjectClusters.cpp:958–995`; *found in review*) |
+| `Checksum()` | Lane order; the definition's `Index`, so the CRC is layout-independent |
+| `CaptureProbeRef` / `RunProbe` | `TWeakObjectPtr<UGCBItemObject>`: the engine's own index + serial-number reference (`WeakObjectPtr.h:570–574`). `Get()` returns null for a garbage or destroyed object. The references are deliberately **not** `UPROPERTY`: a weak reference must not keep anything alive |
+
+### E6. `GCBBenchmarkSubsystem` changes in S4
+
+| Change | Why |
+|---|---|
+| `EGCBConfig` gains `U0`, `U1`, `U2`; `ParseConfig` uses a small table | One place lists the configurations this build accepts |
+| `ValidateRunSettings`: items 1…1,000,000 for item configs; `-GCBGCFrames` 0…3,600; U1 needs `-GCBGCFrames` > 0 | Together the two limits keep U0's peak object count near 1.65 million: 1,000,000 live items, at most 61.1 s of garbage at 1% per second (611,000), 977 pages and about 35,500 engine objects. That is below the cooked game's 2,097,152-object limit (`UObjectBase.cpp:1363`). U1 rebuilds clusters only before the cycles the director requests, so under the engine timer its expired items would never leave their clusters. (*Found in review:* the first version bounded only the item count, so a long GC interval could pile up enough garbage to hit the limit) |
+| `ApplyGCSettings`: U2 sets `gc.AllowIncrementalReachability 1` and `gc.IncrementalReachabilityTimeLimit 0.002` from code | 02 §7 |
+| `CreateWorkload()` | 16 definitions in every configuration (E0 included, so object counts compare like for like), then the store and `Populate`, timed (`populate_ms` in the report) |
+| `UpdateWorkload(DeltaTime)` | Ticks = round(Δt × 60), at least 1: exactly 1 in fixed-step runs. Times `Update` and the probe separately; publishes `Items`, `Expired`, `UpdateMs`, `UpdateNsPerItem` (M6), `ProbeNsPerLookup` (M7), `ProbeErrors` |
+| `UpdateGCCadence`: `PrepareForGC` timed as `ClusterMs`, just before `ForceGarbageCollection(false)` | U1's maintenance lands in the cycle's own frame and is visible as its own column |
+| `UPROPERTY(Transient) Definitions`, `Store` | Owned by the director, so the GC sees them; `Transient`, because nothing is saved |
+| Run report: `populate_ms`, `clusters_rebuilt`, `expired`, the probe totals, `checksum` | SC7 needs the checksum and the probe errors per run |
+
+### E7. `Tools\run_bench.py` changes in S4
+
+| Change | Why |
+|---|---|
+| `CONFIGS` gains `U0`, `U1`, `U2` | The configurations this build accepts (the director rejects any other) |
+| `combinations(round_configs)`: E0 runs once per round, at N = 0, whatever `--items` says; U0, U1 and U2 need `--items` > 0 | E0 has no items, and the director rejects E0 with items. One E0 run per round keeps the rotation balanced |
+| `SUMMARY_COLUMNS` and the summary gain `UpdateNsPerItem` (M6), `ProbeNsPerLookup` (M7), `ClusterMs` p95 and the probe errors | The per-item and per-lookup costs and U1's maintenance, next to the GC metrics |
+| `is_failure`: a probe error, or fewer cycles in the bracket than GC requests, fails the run | A lookup that finds the wrong item, or a request that started no cycle, would make the run's numbers meaningless |
+| `checksum_groups` / `checksum_mismatches`, and a "Checksums (SC7)" table in the summary | Every measured run with the same items, seed and frame count must report the same checksum, whatever its configuration. A mismatch fails the batch |
+| `--verify-gc` swaps `-NoVerifyGC` for `-VERIFYGC` | A diagnostic run with the engine's GC verification on (`Runtime/CoreUObject/Private/UObject/Obj.cpp:5915–5944`); never for timed runs. The environment record says which one a batch used |

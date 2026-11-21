@@ -1,7 +1,7 @@
 # 02 · System Architecture: GCBudget (v1.1)
 
 **Phase:** 3 (Architecture), **final**, 2026-11-21. The only earlier plan was the one-row summary in the README; §13 lists what changed from it.
-**Revised:** 2026-11-21 in Phase 5 step S1, where the code and its review proved three details wrong; §14 lists them.
+**Revised:** 2026-11-21 in Phase 5 steps S1 and S4, where the code and its reviews proved some details wrong or incomplete; §14 lists them.
 **Engine:** UE 5.8.4. Every engine behaviour relied on here is verified in [01b_Research_Findings.md](01b_Research_Findings.md); references like `01b #3` point to its §1 table.
 **Rule:** this is the design *before* code. If implementation proves a decision wrong, this file is updated in the same step.
 
@@ -186,7 +186,7 @@ NewItem(lane) = parameters from Hash(Seed, lane, laneGeneration)   // order-inde
 
 | Setting | Default | Reasoning |
 |---|---|---|
-| GC cadence | 120 frames (2.0 s at a 60 Hz fixed step) | About 30 cycles per 60 s capture: stable p95 and max (`01` §6.1). The default 61.1 s gives one cycle a minute |
+| GC cadence | 120 frames (2.0 s at a 60 Hz fixed step); 0…3,600 accepted, and U1 needs more than 0 (§14) | About 30 cycles per 60 s capture: stable p95 and max (`01` §6.1). The default 61.1 s gives one cycle a minute |
 | Engine GC timer | 3600 s | Parks the timer; the director triggers cycles (§6) |
 | Items per page (U0/U1/U2) | 1,024 | Well above `gc.MinGCClusterSize` (5, `BaseEngine.ini:1753`), so every page forms a cluster; 98 pages at 100k. One expiry dirties one page (about 1% of the clusters), not the whole store as a single cluster would. **Honest caveat:** at 1% churn per second each page sees about 20 expiries per 2 s cycle, so U1 rebuilds nearly every cluster before every cycle. That maintenance cost is exactly what U1 is there to show (H4). A page-size sweep is a Phase 8 option |
 | U2 time limit | 2 ms | Epic's 5.8 docs example. The 5.8.4 default is 5 ms (`GarbageCollection.cpp:310`), a third of a 60 fps frame |
@@ -205,6 +205,7 @@ NewItem(lane) = parameters from Hash(Seed, lane, laneGeneration)   // order-inde
 | Incremental reachability misses a write | `TObjectPtr` only, so the write barrier fires. No raw `UObject*` members anywhere | `01b` #9; docs (D1) |
 | Item access off the game thread | None. Every store operation runs in the director's game-thread tick (incremental GC is not thread-safe) | `01b` #8 |
 | Cluster edits racing the GC | U1 creates and dissolves clusters only in the director's tick, never inside GC delegates, and is never combined with U2 | `01b` #10 |
+| A live item the GC can't see (U1) | Every replacement item joins its page's cluster when it is created (`AddToCluster`), because a cluster root's own references are never traced | §14 |
 | A clustered item kept alive after expiry | Expiry calls `MarkAsGarbage()` and drops the pointer. `PrepareForGC` dissolves and rebuilds the clusters of changed pages before each cycle, so dead items are no longer clustered when the GC looks | `01b` #10 |
 | A handle to a reused slot | `Resolve` compares generations. Every access goes through `Resolve`; raw indices are never stored across frames | §2 |
 | A pointer into a struct array after it grows | The stores `Reserve(N)` at populate and never grow during a run; code never keeps element pointers across `Allocate` | `TArray` reallocation semantics |
@@ -275,3 +276,6 @@ All values are set with `IConsoleVariable::Set(…, ECVF_SetByCode)`, logged, an
 | S1 | A cycle counts for a frame only if it starts while that world's bracket is open; others are counted separately and reported | `PreGarbageCollect` is global. A cycle during map load or another world's tick would otherwise be charged to the next frame (found in review, `09`) |
 | S1 | The director restores every console variable it changed | A world that outlives the benchmark (PIE, map travel) would otherwise keep a parked GC timer (found in review, `09`) |
 | S1 | `-GCBReport=` became `-GCBRunTag=` plus `-GCBExit` | The runner needs a known report name per run and a clean exit, not a folder choice |
+| S4 | U1 adds every replacement item to its page's cluster at once (`AddToCluster`), on top of the rebuild before each requested cycle | The GC never traces a cluster root's own references (`GarbageCollection.cpp:3130–3139`). An item outside the cluster would be freed while the page still points at it by any GC that doesn't follow a rebuild: the engine timer, or a request deferred by a running purge (found in review, `09`) |
+| S4 | `-GCBGCFrames` is limited to 0…3,600, and U1 rejects 0 | Garbage builds up between cycles. With up to 1,000,000 items the cap keeps U0 near 1.65 million objects, below the cooked game's 2,097,152 (`UObjectBase.cpp:1363`). U1 rebuilds clusters only before requested cycles (found in review, `09`) |
+| S4 | E0 creates the 16 definitions too | Every configuration then has the same shared objects, so UObject counts compare like for like. S1's E0 had none, so its counts are 16 lower |
